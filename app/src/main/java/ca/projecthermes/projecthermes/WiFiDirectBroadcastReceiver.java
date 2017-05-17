@@ -6,11 +6,17 @@ import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Iterator;
 
+import ca.projecthermes.projecthermes.networking.Connection;
 import ca.projecthermes.projecthermes.util.BundleHelper;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
 
@@ -55,6 +61,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                 @Override
                                 public void onSuccess() {
                                     Log.d("hermes", "Connected to peer " + device.deviceName);
+
+
                                 }
 
                                 @Override
@@ -62,8 +70,53 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                     Log.d("hermes", "Could not connect to peer for reason " + reason);
                                 }
                             });
-                        }
+                        } else if (device.status == WifiP2pDevice.CONNECTED) {
+                            manager.requestConnectionInfo(channel, new WifiP2pManager.ConnectionInfoListener() {
+                                @Override
+                                public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                                    Log.d("hermes", "Got connection info");
+                                    final WifiP2pInfo finfo = info;
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                if (!finfo.isGroupOwner) {
+                                                    Log.d("hermes", "I am client");
+                                                    Socket socket = new Socket();
+                                                    socket.bind(null);
+                                                    int port = 2150;
+                                                    int timeout = 5000;
 
+                                                    try {
+                                                        //Hacky fix for a short time.
+                                                        Log.d("hermes", "hacky sleep");
+                                                        Thread.sleep(5000);
+                                                    } catch (InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    Log.d("hermes", "sleep over");
+                                                    socket.connect(new InetSocketAddress(finfo.groupOwnerAddress, port), timeout);
+                                                    Connection connection = new Connection(socket, false);
+                                                    new Thread(connection).run();
+                                                } else {
+                                                    Log.d("hermes", "I am server");
+                                                    ServerSocket server = new ServerSocket(2150);
+                                                    Log.d("hermes", "Waiting for connection...");
+                                                    Socket client = server.accept();
+                                                    Log.d("hermes", "Got connection");
+
+                                                    Connection connection = new Connection(client, true);
+                                                    new Thread(connection).run();
+                                                }
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).start();
+                                }
+                            });
+                        }
                     }
                 });
             }
