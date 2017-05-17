@@ -5,7 +5,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
 
     <application
         android:allowBackup="true"
@@ -31,5 +34,22 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/wifi_direction_prompt_accept_service_config" />
         </service>
+
+
+        <receiver android:name=".AlarmReceiver" android:process=":remote">
+        </receiver>
+
+        <service android:name=".WiFiPeerDiscoverService"
+            android:exported="false"></service>
+
+        <receiver android:name=".WiFiDirectBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.net.wifi.p2p.STATE_CHANGED" />
+                <action android:name="android.net.wifi.p2p.PEERS_CHANGED" />
+                <action android:name="android.net.wifi.p2p.THIS_DEVICE_CHANGED" />
+                <action android:name="android.net.wifi.p2p.CONNECTION_STATE_CHANGE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
