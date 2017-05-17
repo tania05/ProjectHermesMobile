@@ -20,14 +20,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     private WifiP2pManager.Channel channel;
     private MainActivity activity;
 
-    public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, MainActivity activity) {
-        this.manager = manager;
-        this.channel = channel;
-        this.activity = activity;
-    }
-
     @Override
     public void onReceive(Context context, Intent intent) {
+
         String action = intent.getAction();
         Log.d("hermes", "Broadcast received of action " + action + " with extras " + BundleHelper.describeContents(intent.getExtras()));
 
