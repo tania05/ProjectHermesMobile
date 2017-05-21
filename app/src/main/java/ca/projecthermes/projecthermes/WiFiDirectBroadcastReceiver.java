@@ -16,9 +16,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Iterator;
 
-import ca.projecthermes.projecthermes.networking.Connection;
+import ca.projecthermes.projecthermes.networking.HeartbeatResponder;
+import ca.projecthermes.projecthermes.networking.Packet;
+import ca.projecthermes.projecthermes.networking.PacketManager;
+import ca.projecthermes.projecthermes.networking.PacketSerializer;
 import ca.projecthermes.projecthermes.util.BundleHelper;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
+import ca.projecthermes.projecthermes.util.TimeManager;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
@@ -97,17 +101,29 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
                                                     Log.d("hermes", "sleep over");
                                                     socket.connect(new InetSocketAddress(finfo.groupOwnerAddress, port), timeout);
-                                                    Connection connection = new Connection(socket, false);
-                                                    new Thread(connection).run();
+                                                    PacketManager packetManager = new PacketManager(
+                                                            new HermesLogger("packetManager"),
+                                                            socket.getInputStream(),
+                                                            socket.getOutputStream(),
+                                                            new PacketSerializer(new HermesLogger("packetSerializer"), Packet.PACKET_TYPES)
+                                                    );
+                                                    new Thread(new HeartbeatResponder(new HermesLogger("heartbeatResponder"), packetManager, new TimeManager(), 7500)).start();
+                                                    new Thread(packetManager).start();
                                                 } else {
                                                     Log.d("hermes", "I am server");
                                                     ServerSocket server = new ServerSocket(2150);
-                                                    Log.d("hermes", "Waiting for connection...");
+                                                    Log.d("hermes", "Waiting for packetManager...");
                                                     Socket client = server.accept();
-                                                    Log.d("hermes", "Got connection");
+                                                    Log.d("hermes", "Got packetManager");
 
-                                                    Connection connection = new Connection(client, true);
-                                                    new Thread(connection).run();
+                                                    PacketManager packetManager = new PacketManager(
+                                                            new HermesLogger("packetManager"),
+                                                            client.getInputStream(),
+                                                            client.getOutputStream(),
+                                                            new PacketSerializer(new HermesLogger("packetSerializer"), Packet.PACKET_TYPES)
+                                                    );
+                                                    new Thread(new HeartbeatResponder(new HermesLogger("heartbeatResponder"), packetManager, new TimeManager(), 10000)).start();
+                                                    new Thread(packetManager).start();
                                                 }
                                             } catch (IOException e) {
                                                 e.printStackTrace();
