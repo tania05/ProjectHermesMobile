@@ -87,7 +87,7 @@ public class PacketManagerUnitTests {
             //TODO, better async testing, this will fail on spurious wakeup.
             waiter.wait(5000);
             assertTrue(payload[0] instanceof TestPayload);
-            assertEquals(((TestPayload)payload[0]).val, 24);
+            assertEquals(24, ((TestPayload)payload[0]).val);
 
             waiter.wait(5000);
             assertTrue(disconnectCalled[0]);

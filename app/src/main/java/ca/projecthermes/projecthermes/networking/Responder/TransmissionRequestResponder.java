@@ -101,6 +101,8 @@ public class TransmissionRequestResponder implements Runnable {
 
     private void onMessageReceived(Message message) {
         _logger.d("Received message: " + message);
+
+        //TODO we could potentially be trying to store the same message twice, the store should handle this.
         _messageStore.storeMessage(message);
     }
 }

@@ -33,7 +33,7 @@ public class TransmissionRequestResponderUnitTests {
             public Message getMessageForIdentifier(byte[] identifier) {
                 if (Arrays.equals(identifier, new byte[]{ testIdentifier })) {
                     return new Message(
-                            new byte[] { 0x01 },
+                            new byte[] { testIdentifier },
                             new byte[] { 0x00 },
                             new byte[] { 0x01, 0x02, 0x03 }
                     );
@@ -83,7 +83,7 @@ public class TransmissionRequestResponderUnitTests {
         receivedIdentifierList.add(new byte[] { 0 });
         pm.packetReceiveSource.update(new TransmissionRequest(false, receivedIdentifierList));
 
-        assertEquals(numRequested[0], 0);
+        assertEquals(0, numRequested[0]);
     }
 
     @Test
@@ -119,7 +119,7 @@ public class TransmissionRequestResponderUnitTests {
         receivedIdentifierList.add(new byte[] { 1 });
         pm.packetReceiveSource.update(new TransmissionRequest(false, receivedIdentifierList));
 
-        assertEquals(numRequested[0], 1);
+        assertEquals(1, numRequested[0]);
     }
 
     @Test
@@ -149,9 +149,160 @@ public class TransmissionRequestResponderUnitTests {
 
         responder.run();
 
-        assertEquals(requested[0].isRequesting, false);
-        assertEquals(requested[0].messageIdentifiers.size(), 1);
-        assertArrayEquals(requested[0].messageIdentifiers.get(0), store.getStoredMessageIdentifiers().get(0));
+        assertEquals(false, requested[0].isRequesting);
+        assertEquals(1, requested[0].messageIdentifiers.size());
+        assertArrayEquals(store.getStoredMessageIdentifiers().get(0), requested[0].messageIdentifiers.get(0));
+    }
 
+    @Test
+    public void WillGiveAMessageIfAsked() throws Exception {
+        final Message[] messageSent = new Message[] { null };
+
+        MockPacketManager pm = new MockPacketManager();
+        IMessageStore store = getStore((byte) 0, null);
+
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+
+
+        pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
+            @Override
+            public void update(Object arg) {
+                if (arg instanceof Message) {
+                    messageSent[0] = (Message) arg;
+                }
+            }
+
+            @Override
+            public void error(Exception e) {
+                throw new RuntimeException("NETBC");
+            }
+        });
+
+        responder.run();
+
+        ArrayList<byte[]> receivedIdentifierList = new ArrayList<>();
+        receivedIdentifierList.add(new byte[] { 0 });
+        pm.packetReceiveSource.update(new TransmissionRequest(true, receivedIdentifierList));
+
+        assertArrayEquals(store.getStoredMessageIdentifiers().get(0), messageSent[0].identifier) ;
+        assertArrayEquals(store.getMessageForIdentifier(store.getStoredMessageIdentifiers().get(0)).body, messageSent[0].body);
+        assertArrayEquals(store.getMessageForIdentifier(store.getStoredMessageIdentifiers().get(0)).verifier, messageSent[0].verifier);
+    }
+
+    @Test
+    public void WillGiveMultipleMessagesIfAsked() throws Exception {
+        final ArrayList<Message> messageSent = new ArrayList<>();
+
+        MockPacketManager pm = new MockPacketManager();
+        IMessageStore store =  new IMessageStore() {
+
+            @Override
+            public ArrayList<byte[]> getStoredMessageIdentifiers() {
+                ArrayList<byte[]> stored = new ArrayList<>();
+                stored.add(new byte[] { 0 });
+                stored.add(new byte[] { 1 });
+                return stored;
+            }
+
+            @Override
+            public Message getMessageForIdentifier(byte[] identifier) {
+                if (Arrays.equals(identifier, new byte[] { 0 })) {
+                    return new Message(
+                            new byte[] { 0 }, // identifier
+                            new byte[] { 0 }, // verifier
+                            new byte[] { 0, 0, 0 } // body
+                    );
+
+                } else if (Arrays.equals(identifier, new byte[] { 1 })) {
+                    return new Message(
+                            new byte[] { 1 },
+                            new byte[] { 0 },
+                            new byte[] { 1, 1, 1 }
+                    );
+                } else {
+                    return null;
+                }
+            }
+
+            @Override
+            public void storeMessage(Message m) {
+            }
+        };
+
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+
+
+        pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
+            @Override
+            public void update(Object arg) {
+                if (arg instanceof Message) {
+                    messageSent.add((Message) arg);
+                }
+            }
+
+            @Override
+            public void error(Exception e) {
+                throw new RuntimeException("NETBC");
+            }
+        });
+
+        responder.run();
+
+        ArrayList<byte[]> receivedIdentifierList = new ArrayList<>();
+        receivedIdentifierList.add(new byte[] { 0 });
+        receivedIdentifierList.add(new byte[] { 1 });
+        pm.packetReceiveSource.update(new TransmissionRequest(true, receivedIdentifierList));
+
+        assertEquals(2, messageSent.size());
+        boolean identifierZeroExists = false;
+        boolean identifierOneExists = false;
+
+        for (int i = 0; i < messageSent.size(); i++) {
+            Message m = messageSent.get(i);
+            if (Arrays.equals(m.identifier, new byte[] { 0 })) {
+                identifierZeroExists = true;
+            } else if (Arrays.equals(m.identifier, new byte[] { 1 })) {
+                identifierOneExists = true;
+            }
+        }
+
+        assertTrue(identifierZeroExists);
+        assertTrue(identifierOneExists);
+
+    }
+
+    @Test
+    public void WillStoreAMessageItDoesNotHave() throws Exception {
+        final boolean[] wasStored = new boolean[] { false };
+
+        Source<Message> storeSource = new Source<>();
+        IMessageStore store = getStore((byte) 0, storeSource);
+        final Message sentMessage = new Message(
+                new byte[] { 0x01 },
+                new byte[] { 0x00 },
+                new byte[] { 0x00, 0x01, 0x02, 0x03 }
+        );
+
+        storeSource.subscribe(new IObservableListener<Message>() {
+            @Override
+            public void update(Message arg) {
+                if (arg.equals(sentMessage)) {
+                    wasStored[0] = true;
+                }
+            }
+
+            @Override
+            public void error(Exception e) {
+
+            }
+        });
+
+        MockPacketManager pm = new MockPacketManager();
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+
+        responder.run();
+
+        pm.packetReceiveSource.update(sentMessage);
+        assertTrue(wasStored[0]);
     }
 }

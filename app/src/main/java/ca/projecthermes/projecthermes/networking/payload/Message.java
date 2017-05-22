@@ -17,4 +17,25 @@ public class Message implements IPayload {
     public String toString() {
         return "{Message [identifier]: " + Arrays.toString(identifier) + " [verifier.len] : " + verifier.length + " [body.length] " + body.length;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Message)) {
+            return false;
+        }
+
+        Message otherMessage = (Message) other;
+
+        if (!Arrays.equals(this.identifier, otherMessage.identifier)) {
+            return false;
+        }
+        if (!Arrays.equals(this.verifier, otherMessage.verifier)) {
+            return false;
+        }
+        if (!Arrays.equals(this.body, otherMessage.body)) {
+            return false;
+        }
+
+        return true;
+    }
 }
