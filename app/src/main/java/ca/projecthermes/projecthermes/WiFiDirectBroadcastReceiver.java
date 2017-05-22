@@ -14,14 +14,19 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
-import ca.projecthermes.projecthermes.networking.HeartbeatResponder;
+import ca.projecthermes.projecthermes.networking.Responder.HeartbeatResponder;
 import ca.projecthermes.projecthermes.networking.Packet;
 import ca.projecthermes.projecthermes.networking.PacketManager;
 import ca.projecthermes.projecthermes.networking.PacketSerializer;
+import ca.projecthermes.projecthermes.networking.Responder.TransmissionRequestResponder;
+import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.BundleHelper;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
+import ca.projecthermes.projecthermes.util.IMessageStore;
 import ca.projecthermes.projecthermes.util.TimeManager;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
@@ -99,6 +104,34 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                                         e.printStackTrace();
                                                     }
 
+                                                    IMessageStore store = new IMessageStore() {
+
+                                                        @Override
+                                                        public ArrayList<byte[]> getStoredMessageIdentifiers() {
+                                                            ArrayList<byte[]> b = new ArrayList<>();
+                                                            b.add(new byte[] { 0x02 });
+
+                                                            return b;
+                                                        }
+
+                                                        @Override
+                                                        public Message getMessageForIdentifier(byte[] identifier) {
+                                                            if (Arrays.equals(identifier, new byte[]{0x02})) {
+                                                                return new Message(
+                                                                        new byte[] { 0x01 },
+                                                                        new byte[] { 0x00 },
+                                                                        new byte[] { 0x01, 0x02, 0x03 }
+                                                                );
+                                                            }
+                                                            return null;
+                                                        }
+
+                                                        @Override
+                                                        public void storeMessage(Message m) {
+                                                            Log.w("hermes", "Storing message " + m);
+                                                        }
+                                                    };
+
                                                     Log.d("hermes", "sleep over");
                                                     socket.connect(new InetSocketAddress(finfo.groupOwnerAddress, port), timeout);
                                                     PacketManager packetManager = new PacketManager(
@@ -108,6 +141,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                                             new PacketSerializer(new HermesLogger("packetSerializer"), Packet.PACKET_TYPES)
                                                     );
                                                     new Thread(new HeartbeatResponder(new HermesLogger("heartbeatResponder"), packetManager, new TimeManager(), 7500)).start();
+                                                    new Thread(new TransmissionRequestResponder(new HermesLogger("transmissionRequestResponder"), packetManager, store)).start();
                                                     new Thread(packetManager).start();
                                                 } else {
                                                     Log.d("hermes", "I am server");
@@ -116,6 +150,34 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                                     Socket client = server.accept();
                                                     Log.d("hermes", "Got packetManager");
 
+                                                    IMessageStore store = new IMessageStore() {
+
+                                                        @Override
+                                                        public ArrayList<byte[]> getStoredMessageIdentifiers() {
+                                                            ArrayList<byte[]> b = new ArrayList<>();
+                                                            b.add(new byte[] { 0x01 });
+
+                                                            return b;
+                                                        }
+
+                                                        @Override
+                                                        public Message getMessageForIdentifier(byte[] identifier) {
+                                                            if (Arrays.equals(identifier, new byte[]{0x01})) {
+                                                                return new Message(
+                                                                        new byte[] { 0x01 },
+                                                                        new byte[] { 0x00 },
+                                                                        new byte[] { 0x01, 0x02, 0x03 }
+                                                                );
+                                                            }
+                                                            return null;
+                                                        }
+
+                                                        @Override
+                                                        public void storeMessage(Message m) {
+                                                            Log.w("hermes", "Storing message " + m);
+                                                        }
+                                                    };
+
                                                     PacketManager packetManager = new PacketManager(
                                                             new HermesLogger("packetManager"),
                                                             client.getInputStream(),
@@ -123,6 +185,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                                             new PacketSerializer(new HermesLogger("packetSerializer"), Packet.PACKET_TYPES)
                                                     );
                                                     new Thread(new HeartbeatResponder(new HermesLogger("heartbeatResponder"), packetManager, new TimeManager(), 10000)).start();
+                                                    new Thread(new TransmissionRequestResponder(new HermesLogger("transmissionRequestResponder"), packetManager, store)).start();
                                                     new Thread(packetManager).start();
                                                 }
                                             } catch (IOException e) {

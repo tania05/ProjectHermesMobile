@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 import ca.projecthermes.projecthermes.networking.payload.Heartbeat;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
+import ca.projecthermes.projecthermes.networking.payload.Message;
+import ca.projecthermes.projecthermes.networking.payload.TransmissionRequest;
 
 public class Packet<T extends IPayload> implements IPacket<T> {
     private int _packetType;
@@ -24,6 +26,8 @@ public class Packet<T extends IPayload> implements IPacket<T> {
     // Ugh... lets remove this static here.
     // TODO
     public static ArrayList<IPacket> PACKET_TYPES = new ArrayList<>(Arrays.asList(new IPacket[] {
-            new Packet<>(0, Heartbeat.class)
+            new Packet<>(0, Heartbeat.class),
+            new Packet<>(1, TransmissionRequest.class),
+            new Packet<>(2, Message.class)
     }));
 }
