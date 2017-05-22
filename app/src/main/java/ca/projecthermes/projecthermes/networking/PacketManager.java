@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 import ca.projecthermes.projecthermes.IHermesLogger;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
@@ -80,10 +81,13 @@ public class PacketManager implements Runnable, IPacketManager {
 
 
     private void write(byte[] dest, int off, int val) {
+        _logger.w("Writing int " + val);
         dest[off] = (byte)((val >> 24) & 0xFF);
         dest[off+1] = (byte)((val >> 16) & 0xFF);
         dest[off+2] = (byte)((val >> 8) & 0xFF);
         dest[off+3] = (byte)(val & 0xFF);
+
+        _logger.w("Final int write " + Arrays.toString(dest));
     }
 
     private void write(byte[] dest, int off, byte[] source) {
@@ -91,7 +95,10 @@ public class PacketManager implements Runnable, IPacketManager {
     }
 
     private int readInt(byte[] source, int off) {
-        return (source[off] << 24) | (source[off+1] << 16) | (source[off+2] << 8) | source[off+3];
+        int val = ((source[off] & 0xFF) << 24) | ((source[off+1] & 0xFF) << 16) | ((source[off+2] & 0xFF) << 8) | (source[off+3] & 0xFF);
+        _logger.w("reading int " + val);
+        _logger.w("Final int read " + Arrays.toString(source));
+        return val;
     }
 
     private void sendMessageAsync(String message) throws IOException {
@@ -110,8 +117,8 @@ public class PacketManager implements Runnable, IPacketManager {
     }
 
     @Override
-    public IObservable<Object> sendMessage(final IPayload payload) {
-        final Source<Object> source = new Source<>();
+    public Source<Null> sendMessage(final IPayload payload) {
+        final Source<Null> source = new Source<>();
 
         new Thread(new Runnable() {
             @Override
@@ -125,9 +132,9 @@ public class PacketManager implements Runnable, IPacketManager {
             }
         }).start();
 
-        source.subscribe(new IObservableListener<Object>() {
+        source.subscribe(new IObservableListener<Null>() {
             @Override
-            public void update(Object arg) {}
+            public void update(Null arg) {}
 
             @Override
             public void error(Exception e) {

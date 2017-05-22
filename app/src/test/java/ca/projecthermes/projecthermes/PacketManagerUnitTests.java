@@ -4,8 +4,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.util.concurrent.FutureTask;
 
 import ca.projecthermes.projecthermes.mock.networking.payload.TestPayload;
 import ca.projecthermes.projecthermes.networking.IPacketSerializer;
@@ -14,7 +12,6 @@ import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.util.IObservableListener;
 import ca.projecthermes.projecthermes.util.Null;
 import ca.projecthermes.projecthermes.util.NullLogger;
-import ca.projecthermes.projecthermes.util.SystemLogger;
 
 import static org.junit.Assert.*;
 
