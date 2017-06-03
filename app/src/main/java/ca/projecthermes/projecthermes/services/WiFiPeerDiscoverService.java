@@ -1,4 +1,4 @@
-package ca.projecthermes.projecthermes;
+package ca.projecthermes.projecthermes.services;
 
 import android.app.IntentService;
 import android.content.Context;

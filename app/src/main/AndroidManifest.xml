@@ -39,7 +39,7 @@
         <receiver android:name=".AlarmReceiver" android:process=":remote">
         </receiver>
 
-        <service android:name=".WiFiPeerDiscoverService"
+        <service android:name=".services.WiFiPeerDiscoverService"
             android:exported="false"></service>
 
         <receiver android:name=".WiFiDirectBroadcastReceiver">
