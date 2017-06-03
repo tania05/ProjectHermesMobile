@@ -4,8 +4,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.util.concurrent.FutureTask;
 
 import ca.projecthermes.projecthermes.mock.networking.payload.TestPayload;
 import ca.projecthermes.projecthermes.networking.IPacketSerializer;
@@ -14,7 +12,6 @@ import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.util.IObservableListener;
 import ca.projecthermes.projecthermes.util.Null;
 import ca.projecthermes.projecthermes.util.NullLogger;
-import ca.projecthermes.projecthermes.util.SystemLogger;
 
 import static org.junit.Assert.*;
 
@@ -90,7 +87,7 @@ public class PacketManagerUnitTests {
             //TODO, better async testing, this will fail on spurious wakeup.
             waiter.wait(5000);
             assertTrue(payload[0] instanceof TestPayload);
-            assertEquals(((TestPayload)payload[0]).val, 24);
+            assertEquals(24, ((TestPayload)payload[0]).val);
 
             waiter.wait(5000);
             assertTrue(disconnectCalled[0]);
