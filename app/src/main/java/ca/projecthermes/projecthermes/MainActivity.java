@@ -2,10 +2,8 @@ package ca.projecthermes.projecthermes;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -14,10 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.UUID;
-
-import ca.projecthermes.projecthermes.data.MessageContract.MessageEntry;
-import ca.projecthermes.projecthermes.data.MessageDbHelper;
+import ca.projecthermes.projecthermes.data.HermesDbHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,24 +35,31 @@ public class MainActivity extends AppCompatActivity {
         final EditText msg = (EditText)findViewById(R.id.msgBody);
 
 
-        MessageDbHelper messageDbHelper = new MessageDbHelper(this);
-        final SQLiteDatabase db = messageDbHelper.getWritableDatabase();
-
+        final HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
 
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                ContentValues values = new ContentValues();
-                values.put(MessageEntry.COLUMN_MSG_BODY, msg.getText().toString());
-                values.put(MessageEntry.COLUMN_MSG_ID, UUID.randomUUID().toString());
-                values.put(MessageEntry.COLUMN_MSG_RECIPIENT, recipient.getText().toString());
-
-                long newRowId = db.insert(MessageEntry.TABLE_NAME, null, values);
-                Toast.makeText(MainActivity.this, newRowId+"", Toast.LENGTH_SHORT).show();
-
-                Log.d("hermes", "Db Row " + newRowId);
+                hermesDbHelper.insertMessage(msg.getText().toString(),
+                                              recipient.getText().toString());
                 Log.d("hermes", System.currentTimeMillis() + "");
+            }
+        });
+
+        Button keysBtn = (Button) this.findViewById(R.id.keys);
+        keysBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hermesDbHelper.insertKey(Encryption.generateKeyPair());
+            }
+        });
+
+        Button lastMsgBtn = (Button) this.findViewById(R.id.lastMsg);
+        lastMsgBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, hermesDbHelper.showLastMsg(), Toast.LENGTH_SHORT).show();
             }
         });
     }
