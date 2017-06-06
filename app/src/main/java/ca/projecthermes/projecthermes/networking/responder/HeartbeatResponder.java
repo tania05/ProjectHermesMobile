@@ -1,9 +1,9 @@
-package ca.projecthermes.projecthermes.networking.Responder;
+package ca.projecthermes.projecthermes.networking.responder;
 
 import org.jetbrains.annotations.NotNull;
 
 import ca.projecthermes.projecthermes.IHermesLogger;
-import ca.projecthermes.projecthermes.networking.IPacketManager;
+import ca.projecthermes.projecthermes.networking.packet.IPacketManager;
 import ca.projecthermes.projecthermes.networking.payload.Heartbeat;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.util.IObservableListener;
@@ -48,6 +48,7 @@ public class HeartbeatResponder implements Runnable {
                 throw new RuntimeException("HeartbeatResponder is already running.");
             }
             _running = true;
+            _runningThread = Thread.currentThread();
 
             _lastHeartbeat = _timeManager.getTime();
             _missedHeartbeats = 0;

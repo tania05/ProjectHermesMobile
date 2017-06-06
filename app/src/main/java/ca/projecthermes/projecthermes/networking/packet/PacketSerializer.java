@@ -1,4 +1,4 @@
-package ca.projecthermes.projecthermes.networking;
+package ca.projecthermes.projecthermes.networking.packet;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

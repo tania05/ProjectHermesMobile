@@ -1,8 +1,10 @@
 package ca.projecthermes.projecthermes;
 
+import android.net.wifi.p2p.WifiP2pDevice;
+
 import org.junit.Test;
 
-import ca.projecthermes.projecthermes.networking.PacketManager;
+import ca.projecthermes.projecthermes.networking.packet.PacketManager;
 
 import static org.junit.Assert.*;
 
@@ -16,6 +18,6 @@ public class ExampleUnitTest {
     public void addition_isCorrect() throws Exception {
         assertTrue(PacketManager.class != null);
 
-
+        assertEquals(WifiP2pDevice.CONNECTED, 0);
     }
 }

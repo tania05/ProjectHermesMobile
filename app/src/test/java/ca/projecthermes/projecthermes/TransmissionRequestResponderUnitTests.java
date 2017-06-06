@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import ca.projecthermes.projecthermes.mock.networking.MockPacketManager;
-import ca.projecthermes.projecthermes.networking.Responder.TransmissionRequestResponder;
-import ca.projecthermes.projecthermes.networking.payload.IPayload;
+import ca.projecthermes.projecthermes.networking.responder.TransmissionRequestResponder;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.networking.payload.TransmissionRequest;
 import ca.projecthermes.projecthermes.util.IMessageStore;

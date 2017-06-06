@@ -6,8 +6,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import ca.projecthermes.projecthermes.mock.networking.payload.TestPayload;
-import ca.projecthermes.projecthermes.networking.IPacketSerializer;
-import ca.projecthermes.projecthermes.networking.PacketManager;
+import ca.projecthermes.projecthermes.networking.packet.IPacketSerializer;
+import ca.projecthermes.projecthermes.networking.packet.PacketManager;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.util.IObservableListener;
 import ca.projecthermes.projecthermes.util.Null;

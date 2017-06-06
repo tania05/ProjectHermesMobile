@@ -2,7 +2,7 @@ package ca.projecthermes.projecthermes.util;
 
 import java.util.ArrayList;
 
-public class Source<T> implements IObservable<T> {
+public class Source<T> implements IObservable<T>, ISource<T>, IObservableSource<T> {
     private final ArrayList<IObservableListener<T>> _listeners;
 
     public Source() {
@@ -16,6 +16,7 @@ public class Source<T> implements IObservable<T> {
         }
     }
 
+    @Override
     public void update(T arg) {
         synchronized (this) {
             for (IObservableListener<T> listener : _listeners) {
@@ -24,6 +25,7 @@ public class Source<T> implements IObservable<T> {
         }
     }
 
+    @Override
     public void error(Exception e) {
         synchronized (this) {
             for (IObservableListener<T> listener : _listeners) {

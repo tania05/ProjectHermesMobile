@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import ca.projecthermes.projecthermes.mock.networking.payload.TestPayload;
-import ca.projecthermes.projecthermes.networking.IPacket;
-import ca.projecthermes.projecthermes.networking.Packet;
-import ca.projecthermes.projecthermes.networking.PacketSerializer;
+import ca.projecthermes.projecthermes.networking.packet.IPacket;
+import ca.projecthermes.projecthermes.networking.packet.Packet;
+import ca.projecthermes.projecthermes.networking.packet.PacketSerializer;
 import ca.projecthermes.projecthermes.util.NullLogger;
 
 import static org.junit.Assert.*;

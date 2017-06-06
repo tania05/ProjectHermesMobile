@@ -1,4 +1,4 @@
-package ca.projecthermes.projecthermes.networking;
+package ca.projecthermes.projecthermes.networking.packet;
 
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
 
