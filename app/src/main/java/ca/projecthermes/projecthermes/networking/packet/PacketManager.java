@@ -1,4 +1,4 @@
-package ca.projecthermes.projecthermes.networking;
+package ca.projecthermes.projecthermes.networking.packet;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -138,7 +138,7 @@ public class PacketManager implements Runnable, IPacketManager {
 
             @Override
             public void error(Exception e) {
-                beginDisconnect();
+                disconnect();
             }
         });
 
@@ -197,14 +197,15 @@ public class PacketManager implements Runnable, IPacketManager {
                     }
                 }
 
-                beginDisconnect();
+                disconnect();
             }
         });
         t.start();
         return t;
     }
 
-    private void beginDisconnect() {
+    @Override
+    public void disconnect() {
         synchronized (_threadControlLock) {
             if (!_isOpen) return;
 

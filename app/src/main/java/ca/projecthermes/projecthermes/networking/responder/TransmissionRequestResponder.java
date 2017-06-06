@@ -1,10 +1,12 @@
-package ca.projecthermes.projecthermes.networking.Responder;
+package ca.projecthermes.projecthermes.networking.responder;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import ca.projecthermes.projecthermes.IHermesLogger;
-import ca.projecthermes.projecthermes.networking.IPacketManager;
+import ca.projecthermes.projecthermes.networking.packet.IPacketManager;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.networking.payload.TransmissionRequest;
@@ -19,9 +21,9 @@ public class TransmissionRequestResponder implements Runnable {
     private boolean _running = false;
 
     public TransmissionRequestResponder(
-        IHermesLogger logger,
-        IPacketManager packetManager,
-        IMessageStore messageStore
+        @NotNull IHermesLogger logger,
+        @NotNull IPacketManager packetManager,
+        @NotNull IMessageStore messageStore
     ) {
         _logger = logger;
         _packetManager = packetManager;

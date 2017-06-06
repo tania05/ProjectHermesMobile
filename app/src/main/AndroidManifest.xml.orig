@@ -40,8 +40,24 @@
         <receiver
             android:name=".AlarmReceiver"
             android:process=":remote" />
+
+<<<<<<< HEAD
+        <service
+            android:name=".WiFiPeerDiscoverService"
+            android:exported="false" />
+=======
         <service android:name=".services.WiFiPeerDiscoverService"
             android:exported="false"></service>
+
+        <receiver android:name=".WiFiDirectBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.net.wifi.p2p.STATE_CHANGED" />
+                <action android:name="android.net.wifi.p2p.PEERS_CHANGED" />
+                <action android:name="android.net.wifi.p2p.THIS_DEVICE_CHANGED" />
+                <action android:name="android.net.wifi.p2p.CONNECTION_STATE_CHANGE" />
+            </intent-filter>
+        </receiver>
+>>>>>>> f6561a03cf251658fa97f78a7dcef205d7a117d6
 
     </application>
 </manifest>

@@ -1,6 +1,6 @@
 package ca.projecthermes.projecthermes.mock.networking;
 
-import ca.projecthermes.projecthermes.networking.IPacketManager;
+import ca.projecthermes.projecthermes.networking.packet.IPacketManager;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.util.IObservable;
 import ca.projecthermes.projecthermes.util.Null;
@@ -26,5 +26,15 @@ public class MockPacketManager implements IPacketManager {
     public Source<Null> sendMessage(IPayload payload) {
         sendMessageSource.update(payload);
         return onSuccessfulSendSource;
+    }
+
+    @Override
+    public void disconnect() {
+        disconnectSource.update(null);
+    }
+
+    @Override
+    public void run() {
+
     }
 }

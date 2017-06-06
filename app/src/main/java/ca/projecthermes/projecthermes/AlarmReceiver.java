@@ -1,8 +1,10 @@
 package ca.projecthermes.projecthermes;
 
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.util.Log;
 import android.widget.Toast;
 

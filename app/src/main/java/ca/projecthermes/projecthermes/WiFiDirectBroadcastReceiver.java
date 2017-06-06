@@ -3,12 +3,13 @@ package ca.projecthermes.projecthermes;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.support.annotation.NonNull;
 import android.util.Log;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -16,28 +17,293 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.Collection;
 
-import ca.projecthermes.projecthermes.networking.Responder.HeartbeatResponder;
-import ca.projecthermes.projecthermes.networking.Packet;
-import ca.projecthermes.projecthermes.networking.PacketManager;
-import ca.projecthermes.projecthermes.networking.PacketSerializer;
-import ca.projecthermes.projecthermes.networking.Responder.TransmissionRequestResponder;
+import ca.projecthermes.projecthermes.exceptions.InvokerFailException;
+import ca.projecthermes.projecthermes.networking.INetworkDevice;
+import ca.projecthermes.projecthermes.networking.INetworkManager;
+import ca.projecthermes.projecthermes.networking.packet.IPacketManager;
+import ca.projecthermes.projecthermes.networking.responder.HeartbeatResponder;
+import ca.projecthermes.projecthermes.networking.packet.Packet;
+import ca.projecthermes.projecthermes.networking.packet.PacketManager;
+import ca.projecthermes.projecthermes.networking.packet.PacketSerializer;
+import ca.projecthermes.projecthermes.networking.responder.TransmissionRequestResponder;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.BundleHelper;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
 import ca.projecthermes.projecthermes.util.IMessageStore;
+import ca.projecthermes.projecthermes.util.IObservableListener;
 import ca.projecthermes.projecthermes.util.TimeManager;
+import ca.projecthermes.projecthermes.util.Util;
 
 public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
-    private WifiP2pManager manager;
-    private WifiP2pManager.Channel channel;
-    private MainActivity activity;
+    private static final int PORT = 2150;
+
+    private final INetworkManager _networkManager;
+    private final IHermesLogger _logger;
+
+    private final Object _serverRunningLock = new Object();
+    private boolean _serverRunning = false;
+
+    public WiFiDirectBroadcastReceiver(
+            @NotNull INetworkManager networkManager,
+            @NotNull IHermesLogger logger
+    ) {
+        _networkManager = networkManager;
+        _logger = logger;
+
+        registerObservables();
+    }
+
+    private void registerObservables() {
+        _networkManager.getNewDeviceFoundObservable().subscribe(new IObservableListener<INetworkDevice>() {
+            @Override
+            public void update(INetworkDevice arg) {
+                onNewDeviceFound(arg);
+            }
+
+            @Override
+            public void error(Exception e) {
+                // Purposely empty, will not be called
+                _logger.wtf("Unexpected error event on newDeviceObservable: " + e.toString());
+            }
+        });
+    }
+
+    private void onNewDeviceFound(final INetworkDevice device) {
+        _logger.d("Found a new device " + device.getName());
+        IObservableListener<INetworkDevice> listener = getDeviceUpdateInterface();
+        device.getStatusChangeObservable().subscribe(listener);
+
+        listener.update(device);
+    }
+
+    private void tryConnectToDevice(final INetworkDevice device) {
+        device.connect().subscribe(new IObservableListener<WifiP2pInfo>() {
+            @Override
+            public void update(WifiP2pInfo arg) {
+                onDeviceConnect(device, arg);
+            }
+
+            @Override
+            public void error(Exception e) {
+                _logger.wtf("Unexpected error event on connectionObservable: " + e.toString());
+            }
+        });
+    }
+
+    private IObservableListener<INetworkDevice> getDeviceUpdateInterface() {
+        final boolean[] attemptedConnection = new boolean[] { false };
+        return new IObservableListener<INetworkDevice>() {
+
+            @Override
+            public void update(final INetworkDevice device) {
+
+                _logger.d("Device " + device.getName() + " now has status " + ErrorCodeHelper.findPossibleConstantsForInt(device.getStatus(), WifiP2pDevice.class));
+
+                int deviceStatus = device.getStatus();
+                if (attemptedConnection[0]) return;
+                if (deviceStatus == WifiP2pDevice.AVAILABLE) {
+                    _logger.d("Device " + device.getName() + " is available, attempting connection...");
+                    attemptedConnection[0] = true;
+                    tryConnectToDevice(device);
+                } else if (deviceStatus == WifiP2pDevice.CONNECTED) {
+                    attemptedConnection[0] = true;
+                    device.requestNetworkInfo().subscribe(new IObservableListener<WifiP2pInfo>() {
+                        @Override
+                        public void update(WifiP2pInfo arg) {
+                            onDeviceConnect(device, arg);
+                        }
+
+                        @Override
+                        public void error(Exception e) {
+                            _logger.wtf("Unexpected error event on requestNetworkInfo: " + e.toString());
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void error(Exception e) {
+                _logger.wtf("Unexpected error event on deviceUpdateObservable: " + e.toString());
+            }
+        };
+    }
+
+    private void onDeviceConnect(final INetworkDevice device, final WifiP2pInfo info) {
+        _logger.d("Connected to " + device.getName());
+        try {
+            if (!device.getIsGroupOwner()) {
+                ensureServerRunning();
+            } else {
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final Socket[] socket = new Socket[] { null };
+
+                        //Temporary block
+                        try {
+                            Util.sleepRetryInvoker(5000, 5, new Util.IInvokerCallback() {
+                                @Override
+                                public void call() throws Exception {
+                                    _logger.d("Attempting to open client socket");
+                                    try {
+                                        socket[0] = getClientSocketForWifiP2pInfo(info);
+                                    } catch (Exception e) {
+                                        _logger.d("Failed to open client socket: " + e.toString());
+                                        throw e;
+                                    }
+                                }
+                            });
+
+                            //blocks
+                            onSocketConnectRunnable(socket[0], false).run();
+                        } catch (InvokerFailException e) {
+                            _logger.e("Failed to open client socket 5 times, aborting.");
+                        }
+
+                    }
+                }).start();
+            }
+        } catch (Exception e) {
+            _logger.wtf("onDeviceConnect: " + e.toString());
+        }
+    }
+
+    private Runnable onSocketConnectRunnable(final Socket socket, final boolean isServer) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IPacketManager packetManager = createPacketManager(socket);
+                    Collection<Runnable> responders;
+                    if (isServer) {
+                        responders = createServerRunnables(packetManager);
+                    } else {
+                        responders = createClientRunnables(packetManager);
+                    }
+                    for (Runnable responder : responders) {
+                        new Thread(responder).start();
+                    }
+
+                    // blocks
+                    packetManager.run();
+                } catch (IOException e) {
+                    _logger.wtf("onSocketConnectRunnable: " + e.toString());
+                }
+            }
+        };
+    }
+
+
+    private void serverLoop(ServerSocket serverSocket) throws IOException {
+        //noinspection InfiniteLoopStatement
+        while (true) {
+            _logger.d("Waiting for connection...");
+            final Socket socket = serverSocket.accept();
+            _logger.d("Connected to new client");
+            new Thread(onSocketConnectRunnable(socket, true)).start();
+        }
+    }
+
+    private void ensureServerRunning() throws IOException {
+        synchronized (_serverRunningLock) {
+            if (!_serverRunning) {
+                _serverRunning = true;
+
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //blocks
+                        try {
+                            ServerSocket serverSocket = new ServerSocket(PORT);
+                            _logger.d("Server running on port : " + PORT);
+
+                            serverLoop(serverSocket);
+                        } catch (IOException e) {
+                            _logger.wtf("Server IOException: " + e.toString());
+                        }
+                        _logger.wtf("Server closed...");
+                    }
+                }).start();
+            }
+        }
+    }
+
+    private Socket getClientSocketForWifiP2pInfo(WifiP2pInfo info) throws IOException {
+        Socket socket = new Socket();
+        socket.bind(null);
+
+        _logger.d("Attempting to open socket to " + info.groupOwnerAddress + " on port " + PORT);
+
+        socket.connect(new InetSocketAddress(info.groupOwnerAddress, PORT), 10000);
+        return socket;
+    }
+
+    @NonNull
+    private IPacketManager createPacketManager(@NotNull Socket socket) throws IOException {
+        return new PacketManager(new HermesLogger("PacketManager"), socket.getInputStream(), socket.getOutputStream(), new PacketSerializer(new HermesLogger("PacketSerializer"), Packet.PACKET_TYPES));
+    }
+
+    @NonNull
+    private Collection<Runnable> createServerRunnables(@NotNull IPacketManager packetManager) {
+        return createCommonRunnables(packetManager);
+    }
+
+    @NonNull
+    private Collection<Runnable> createClientRunnables(@NotNull IPacketManager packetManager) {
+        return createCommonRunnables(packetManager);
+    }
+
+    @NonNull
+    private Collection<Runnable> createCommonRunnables(@NotNull IPacketManager packetManager) {
+        return Arrays.asList(
+                new HeartbeatResponder(new HermesLogger("HeartbeatResponder"), packetManager, new TimeManager(), 7500),
+                new TransmissionRequestResponder(new HermesLogger("TransmissionRequestResponder"), packetManager, getMessageStore())
+        );
+    }
+
+    private IMessageStore getMessageStore() {
+
+        return new IMessageStore() {
+
+            @Override
+            public ArrayList<byte[]> getStoredMessageIdentifiers() {
+                ArrayList<byte[]> b = new ArrayList<>();
+                b.add(new byte[] { 0x02 });
+
+                return b;
+            }
+
+            @Override
+            public Message getMessageForIdentifier(byte[] identifier) {
+                if (Arrays.equals(identifier, new byte[]{0x02})) {
+                    return new Message(
+                            new byte[] { 0x01 },
+                            new byte[] { 0x00 },
+                            new byte[] { 0x01, 0x02, 0x03 }
+                    );
+                }
+                return null;
+            }
+
+            @Override
+            public void storeMessage(Message m) {
+                Log.w("hermes", "Storing message " + m);
+            }
+        };
+    }
+
+    private void onPeerUpdate() {
+        _networkManager.updatePeers();
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
         String action = intent.getAction();
         Log.d("hermes", "Broadcast received of action " + action + " with extras " + BundleHelper.describeContents(intent.getExtras()));
 
@@ -49,156 +315,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 Log.d("hermes", "Wifi P2P disabled");
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-            if (manager != null) {
-                manager.requestPeers(channel, new WifiP2pManager.PeerListListener() {
-                    @Override
-                    public void onPeersAvailable(WifiP2pDeviceList peers) {
-                        Iterator<WifiP2pDevice> devices = peers.getDeviceList().iterator();
-
-                        if (!devices.hasNext()) {
-                            Log.d("hermes", "There is no nearby peers");
-                            return;
-                        }
-
-                        final WifiP2pDevice device = devices.next();
-                        Log.d("hermes", "First device named " + device.deviceName + " has status " + ErrorCodeHelper.findPossibleConstantsForInt(device.status, WifiP2pDevice.class));
-                        if (device.status == WifiP2pDevice.AVAILABLE) {
-                            WifiP2pConfig config = new WifiP2pConfig();
-                            config.deviceAddress = device.deviceAddress;
-
-                            manager.connect(channel, config, new WifiP2pManager.ActionListener() {
-                                @Override
-                                public void onSuccess() {
-                                    Log.d("hermes", "Connected to peer " + device.deviceName);
-
-
-                                }
-
-                                @Override
-                                public void onFailure(int reason) {
-                                    Log.d("hermes", "Could not connect to peer for reason " + reason);
-                                }
-                            });
-                        } else if (device.status == WifiP2pDevice.CONNECTED) {
-                            manager.requestConnectionInfo(channel, new WifiP2pManager.ConnectionInfoListener() {
-                                @Override
-                                public void onConnectionInfoAvailable(WifiP2pInfo info) {
-                                    Log.d("hermes", "Got connection info");
-                                    final WifiP2pInfo finfo = info;
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            try {
-                                                if (!finfo.isGroupOwner) {
-                                                    Log.d("hermes", "I am client");
-                                                    Socket socket = new Socket();
-                                                    socket.bind(null);
-                                                    int port = 2150;
-                                                    int timeout = 5000;
-
-                                                    try {
-                                                        //Hacky fix for a short time.
-                                                        Log.d("hermes", "hacky sleep");
-                                                        Thread.sleep(5000);
-                                                    } catch (InterruptedException e) {
-                                                        e.printStackTrace();
-                                                    }
-
-                                                    IMessageStore store = new IMessageStore() {
-
-                                                        @Override
-                                                        public ArrayList<byte[]> getStoredMessageIdentifiers() {
-                                                            ArrayList<byte[]> b = new ArrayList<>();
-                                                            b.add(new byte[] { 0x02 });
-
-                                                            return b;
-                                                        }
-
-                                                        @Override
-                                                        public Message getMessageForIdentifier(byte[] identifier) {
-                                                            if (Arrays.equals(identifier, new byte[]{0x02})) {
-                                                                return new Message(
-                                                                        new byte[] { 0x01 },
-                                                                        new byte[] { 0x00 },
-                                                                        new byte[] { 0x01, 0x02, 0x03 }
-                                                                );
-                                                            }
-                                                            return null;
-                                                        }
-
-                                                        @Override
-                                                        public void storeMessage(Message m) {
-                                                            Log.w("hermes", "Storing message " + m);
-                                                        }
-                                                    };
-
-                                                    Log.d("hermes", "sleep over");
-                                                    socket.connect(new InetSocketAddress(finfo.groupOwnerAddress, port), timeout);
-                                                    PacketManager packetManager = new PacketManager(
-                                                            new HermesLogger("packetManager"),
-                                                            socket.getInputStream(),
-                                                            socket.getOutputStream(),
-                                                            new PacketSerializer(new HermesLogger("packetSerializer"), Packet.PACKET_TYPES)
-                                                    );
-                                                    new Thread(new HeartbeatResponder(new HermesLogger("heartbeatResponder"), packetManager, new TimeManager(), 7500)).start();
-                                                    new Thread(new TransmissionRequestResponder(new HermesLogger("transmissionRequestResponder"), packetManager, store)).start();
-                                                    new Thread(packetManager).start();
-                                                } else {
-                                                    Log.d("hermes", "I am server");
-                                                    ServerSocket server = new ServerSocket(2150);
-                                                    Log.d("hermes", "Waiting for packetManager...");
-                                                    Socket client = server.accept();
-                                                    Log.d("hermes", "Got packetManager");
-
-                                                    IMessageStore store = new IMessageStore() {
-
-                                                        @Override
-                                                        public ArrayList<byte[]> getStoredMessageIdentifiers() {
-                                                            ArrayList<byte[]> b = new ArrayList<>();
-                                                            b.add(new byte[] { 0x01 });
-
-                                                            return b;
-                                                        }
-
-                                                        @Override
-                                                        public Message getMessageForIdentifier(byte[] identifier) {
-                                                            if (Arrays.equals(identifier, new byte[]{0x01})) {
-                                                                return new Message(
-                                                                        new byte[] { 0x01 },
-                                                                        new byte[] { 0x00 },
-                                                                        new byte[] { 0x01, 0x02, 0x03 }
-                                                                );
-                                                            }
-                                                            return null;
-                                                        }
-
-                                                        @Override
-                                                        public void storeMessage(Message m) {
-                                                            Log.w("hermes", "Storing message " + m);
-                                                        }
-                                                    };
-
-                                                    PacketManager packetManager = new PacketManager(
-                                                            new HermesLogger("packetManager"),
-                                                            client.getInputStream(),
-                                                            client.getOutputStream(),
-                                                            new PacketSerializer(new HermesLogger("packetSerializer"), Packet.PACKET_TYPES)
-                                                    );
-                                                    new Thread(new HeartbeatResponder(new HermesLogger("heartbeatResponder"), packetManager, new TimeManager(), 10000)).start();
-                                                    new Thread(new TransmissionRequestResponder(new HermesLogger("transmissionRequestResponder"), packetManager, store)).start();
-                                                    new Thread(packetManager).start();
-                                                }
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }).start();
-                                }
-                            });
-                        }
-                    }
-                });
-            }
+            onPeerUpdate();
         }
     }
 }
