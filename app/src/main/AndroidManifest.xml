@@ -40,8 +40,10 @@
         <receiver
             android:name=".AlarmReceiver"
             android:process=":remote" />
-        <service android:name=".services.WiFiPeerDiscoverService"
-            android:exported="false"></service>
+
+        <service
+            android:name=".services.WiFiPeerDiscoverService"
+            android:exported="false" />
 
     </application>
 </manifest>
