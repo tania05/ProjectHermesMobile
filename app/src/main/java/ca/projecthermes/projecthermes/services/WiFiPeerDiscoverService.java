@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import ca.projecthermes.projecthermes.HermesLogger;
+import ca.projecthermes.projecthermes.WiFiDirectBroadcastReceiver;
 import ca.projecthermes.projecthermes.networking.INetworkDevice;
 import ca.projecthermes.projecthermes.networking.INetworkDeviceFactory;
 import ca.projecthermes.projecthermes.networking.NetworkDevice;

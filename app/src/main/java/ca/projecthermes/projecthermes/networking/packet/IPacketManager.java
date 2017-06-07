@@ -10,7 +10,7 @@ public interface IPacketManager extends Runnable {
 
     IObservable<IPayload> getPacketReceiveObservable();
 
-    Source<Null> sendMessage(IPayload payload);
+    IObservable<Null> sendMessage(IPayload payload);
 
     void disconnect();
 }

@@ -4,7 +4,6 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +32,7 @@ public class NetworkDevice implements INetworkDevice {
         @NotNull WifiP2pDevice wifiP2pDevice,
         @NotNull WifiP2pManager wifiP2pManager,
         @NotNull WifiP2pManager.Channel channel,
-        IFactory<WifiP2pConfig> configFactory
+        @NotNull IFactory<WifiP2pConfig> configFactory
     ) {
         _wifiP2pDevice = wifiP2pDevice;
 
@@ -53,7 +52,6 @@ public class NetworkDevice implements INetworkDevice {
     @Override
     public void deviceStatusUpdate(WifiP2pDevice updatedDevice) {
         synchronized (this) {
-            Log.d("Device", "update device " + updatedDevice.deviceName);
             if (!Util.equal(_wifiP2pDevice.deviceAddress, updatedDevice.deviceAddress))
                 throw new AssertionError();
 
@@ -61,7 +59,6 @@ public class NetworkDevice implements INetworkDevice {
             int oldStatus = _wifiP2pDevice.status;
             int newStatus = updatedDevice.status;
 
-            Log.d("Device", "Old status " + oldStatus + " new status " + newStatus);
             _wifiP2pDevice = updatedDevice;
 
             if (oldStatus != newStatus) {
