@@ -1,9 +1,5 @@
 package ca.projecthermes.projecthermes;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -19,12 +15,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.yalantis.phoenix.PullToRefreshView;
 
@@ -40,18 +32,19 @@ public class MainActivity extends AppCompatActivity implements InboxContentFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Adding toolbar to the mainpage
+        // Adding Toolbar to Main screen
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().hide();
 
+        // Setting ViewPager for each Tabs
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-        SetupViewPager(viewPager);
-
+        setupViewPager(viewPager);
+        // Set Tabs inside Toolbar
         TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
-
+//
         final PullToRefreshView mPulltoRefreshView = (PullToRefreshView) findViewById(R.id.pull_to_refresh);
         mPulltoRefreshView.setOnRefreshListener(new PullToRefreshView.OnRefreshListener() {
             @Override
@@ -117,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements InboxContentFragm
         return super.onOptionsItemSelected(item);
     }
 
-    private void SetupViewPager(ViewPager viewPager) {
+    private void setupViewPager(ViewPager viewPager) {
         Adapter adapter = new Adapter(getSupportFragmentManager());
         adapter.addFragment(new InboxContentFragment(), "Message");
         adapter.addFragment(new OutboxContentFragment(), "Outbox Messages");
@@ -157,5 +150,4 @@ public class MainActivity extends AppCompatActivity implements InboxContentFragm
     public void onFragmentInteraction(Uri uri) {
 
     }
-
 }

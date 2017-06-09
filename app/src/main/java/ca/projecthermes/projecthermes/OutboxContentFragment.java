@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +14,7 @@ import android.view.ViewGroup;
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * {@link OutboxContentFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
+ * to handle interacton events.
  * Use the {@link OutboxContentFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
@@ -65,7 +64,7 @@ public class OutboxContentFragment extends Fragment {
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_inbox_content, container, false);
+        return inflater.inflate(R.layout.fragment_outbox_content, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -92,47 +91,8 @@ public class OutboxContentFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
-    }
-
-    public static class ViewHolder extends  RecyclerView.ViewHolder{
-        public ViewHolder(LayoutInflater inflater, ViewGroup parent){
-            super(inflater.inflate(R.layout.outbox_list, parent, false));
-        }
-    }
-
-    public static class ContentAdapter extends RecyclerView.Adapter<ViewHolder> {
-        // Set numbers of List in RecyclerView.
-        private static final int LENGTH = 18;
-
-        public ContentAdapter() {
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(parent.getContext()), parent);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            // no-op
-        }
-
-        @Override
-        public int getItemCount() {
-            return LENGTH;
-        }
     }
 }
