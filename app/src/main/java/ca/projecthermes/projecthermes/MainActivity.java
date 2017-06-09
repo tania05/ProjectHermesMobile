@@ -4,75 +4,158 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.yalantis.phoenix.PullToRefreshView;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 
-public class MainActivity extends AppCompatActivity {
-
-    private PendingIntent pendingIntent;
-
+public class MainActivity extends AppCompatActivity implements InboxContentFragment.OnFragmentInteractionListener, OutboxContentFragment.OnFragmentInteractionListener{
+    private static final int REFRESH_DELAY = 10;
+    private DrawerLayout mDrawerLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        //Adding toolbar to the mainpage
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().hide();
 
-        Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        SetupViewPager(viewPager);
 
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 30000, pendingIntent);
+        TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
+        tabs.setupWithViewPager(viewPager);
 
-        Button sendBtn = (Button) this.findViewById(R.id.sendBtn);
-        final EditText recipient = (EditText)findViewById(R.id.recipient);
-        final EditText msg = (EditText)findViewById(R.id.msgBody);
-
-
-        final HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
-
-        sendBtn.setOnClickListener(new View.OnClickListener() {
+        final PullToRefreshView mPulltoRefreshView = (PullToRefreshView) findViewById(R.id.pull_to_refresh);
+        mPulltoRefreshView.setOnRefreshListener(new PullToRefreshView.OnRefreshListener() {
             @Override
-            public void onClick(View v) {
-
-                hermesDbHelper.insertMessage(msg.getText().toString(),
-                                              recipient.getText().toString());
-                Log.d("hermes", System.currentTimeMillis() + "");
+            public void onRefresh() {
+                mPulltoRefreshView.postDelayed(new Runnable(){
+                    @Override
+                    public void run() {
+                        mPulltoRefreshView.setRefreshing(false);
+                    }
+                }, REFRESH_DELAY);
             }
         });
 
-        Button keysBtn = (Button) this.findViewById(R.id.keys);
-        keysBtn.setOnClickListener(new View.OnClickListener() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer);
+
+        // Adding menu icon to Toolbar
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null) {
+            supportActionBar.setHomeAsUpIndicator(R.drawable.use);
+            supportActionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+        // Set behavior of Navigation drawer
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    // This method will trigger on item Click of navigation menu
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        // Set item in checked state
+                        Fragment fragment = new Fragment();
+
+                        menuItem.setChecked(true);
+                        // TODO: handle navigation
+                        // Closing drawer on item click
+
+                        mDrawerLayout.closeDrawers();
+                        return true;
+                    }
+                });
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hermesDbHelper.insertKey(Encryption.generateKeyPair());
-            }
-        });
-
-        Button lastMsgBtn = (Button) this.findViewById(R.id.lastMsg);
-        lastMsgBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(MainActivity.this, hermesDbHelper.showLastMsg(), Toast.LENGTH_SHORT).show();
+                Snackbar.make(v, "You want mo monayy?!!",
+                        Snackbar.LENGTH_LONG).show();
             }
         });
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        } else if (id == android.R.id.home) {
+            mDrawerLayout.openDrawer(GravityCompat.START);
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
+    private void SetupViewPager(ViewPager viewPager) {
+        Adapter adapter = new Adapter(getSupportFragmentManager());
+        adapter.addFragment(new InboxContentFragment(), "Message");
+        adapter.addFragment(new OutboxContentFragment(), "Outbox Messages");
+        viewPager.setAdapter(adapter);
+    }
+
+    static class Adapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        public Adapter(FragmentManager manager){
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
+
+        public void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    public void onFragmentInteraction(Uri uri) {
 
     }
+
 }
