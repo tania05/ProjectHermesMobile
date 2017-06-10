@@ -15,12 +15,11 @@ public interface INetworkDevice {
 
     void onSignalLoss();
 
-    IObservable<WifiP2pInfo> connect();
+    void connect();
 
     IObservable<WifiP2pInfo> requestNetworkInfo();
 
     String getName();
     String getDeviceAddress();
-    boolean getIsGroupOwner();
     int getStatus();
 }

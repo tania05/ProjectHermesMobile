@@ -1,4 +1,4 @@
-package ca.projecthermes.projecthermes.util;
+package ca.projecthermes.projecthermes.data;
 
 import java.util.ArrayList;
 

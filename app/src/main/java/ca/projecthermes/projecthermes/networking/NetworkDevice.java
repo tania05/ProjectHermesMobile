@@ -1,9 +1,12 @@
 package ca.projecthermes.projecthermes.networking;
 
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -75,32 +78,24 @@ public class NetworkDevice implements INetworkDevice {
     }
 
     @Override
-    public IObservable<WifiP2pInfo> connect() {
+    public void connect() {
         WifiP2pConfig config = _configFactory.create();
-        final Source<WifiP2pInfo> connectListener = new Source<>();
-
 
         synchronized (this) {
             config.deviceAddress = _wifiP2pDevice.deviceAddress;
+            config.groupOwnerIntent = (int) Math.floor(Math.random() * 16);
             _wifiP2pManager.connect(_channel, config, new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {
-                    _wifiP2pManager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
-                        @Override
-                        public void onConnectionInfoAvailable(WifiP2pInfo info) {
-                            connectListener.update(info);
-                        }
-                    });
+                    //ignored, yay!
                 }
 
                 @Override
                 public void onFailure(int reason) {
-                    connectListener.error(new IntValueException(reason));
+                    Log.e("NetworkDevice", "Failed to initiate connection to device " + _wifiP2pDevice.deviceName);
                 }
             });
         }
-
-        return connectListener;
     }
 
     @Override
@@ -127,12 +122,6 @@ public class NetworkDevice implements INetworkDevice {
     public String getDeviceAddress() {
         synchronized (this) {
             return _wifiP2pDevice.deviceAddress;
-        }
-    }
-    @Override
-    public boolean getIsGroupOwner() {
-        synchronized (this) {
-            return _wifiP2pDevice.isGroupOwner();
         }
     }
 

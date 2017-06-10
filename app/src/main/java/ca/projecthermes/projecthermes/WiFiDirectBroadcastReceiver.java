@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.exceptions.InvokerFailException;
 import ca.projecthermes.projecthermes.networking.INetworkDevice;
 import ca.projecthermes.projecthermes.networking.INetworkManager;
@@ -28,10 +29,8 @@ import ca.projecthermes.projecthermes.networking.packet.Packet;
 import ca.projecthermes.projecthermes.networking.packet.PacketManager;
 import ca.projecthermes.projecthermes.networking.packet.PacketSerializer;
 import ca.projecthermes.projecthermes.networking.responder.TransmissionRequestResponder;
-import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.BundleHelper;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
-import ca.projecthermes.projecthermes.util.IMessageStore;
 import ca.projecthermes.projecthermes.util.IObservableListener;
 import ca.projecthermes.projecthermes.util.TimeManager;
 import ca.projecthermes.projecthermes.util.Util;
@@ -45,6 +44,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     private final Object _serverRunningLock = new Object();
     private boolean _serverRunning = false;
+
+    private Context context;
 
     public WiFiDirectBroadcastReceiver(
             @NotNull INetworkManager networkManager,
@@ -79,20 +80,6 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         listener.update(device);
     }
 
-    private void tryConnectToDevice(final INetworkDevice device) {
-        device.connect().subscribe(new IObservableListener<WifiP2pInfo>() {
-            @Override
-            public void update(WifiP2pInfo arg) {
-                onDeviceConnect(device, arg);
-            }
-
-            @Override
-            public void error(Exception e) {
-                _logger.wtf("Unexpected error event on connectionObservable: " + e.toString());
-            }
-        });
-    }
-
     private IObservableListener<INetworkDevice> getDeviceUpdateInterface() {
         final boolean[] attemptedConnection = new boolean[] { false };
         return new IObservableListener<INetworkDevice>() {
@@ -103,12 +90,14 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 _logger.d("Device " + device.getName() + " now has status " + ErrorCodeHelper.findPossibleConstantsForInt(device.getStatus(), WifiP2pDevice.class));
 
                 int deviceStatus = device.getStatus();
-                if (attemptedConnection[0]) return;
                 if (deviceStatus == WifiP2pDevice.AVAILABLE) {
                     _logger.d("Device " + device.getName() + " is available, attempting connection...");
-                    attemptedConnection[0] = true;
-                    tryConnectToDevice(device);
-                } else if (deviceStatus == WifiP2pDevice.CONNECTED) {
+                    attemptedConnection[0] = false;
+                    device.connect();
+                }
+                if (attemptedConnection[0]) return;
+
+                if (deviceStatus == WifiP2pDevice.CONNECTED) {
                     attemptedConnection[0] = true;
                     device.requestNetworkInfo().subscribe(new IObservableListener<WifiP2pInfo>() {
                         @Override
@@ -135,10 +124,10 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     private void onDeviceConnect(final INetworkDevice device, final WifiP2pInfo info) {
         _logger.d("Connected to " + device.getName());
         try {
-            if (!device.getIsGroupOwner()) {
+            if (info.isGroupOwner) {
                 ensureServerRunning();
             } else {
-
+                _logger.d("Attempting to open client connection...");
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -210,6 +199,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void ensureServerRunning() throws IOException {
+        _logger.d("Ensuring that server is running.");
         synchronized (_serverRunningLock) {
             if (!_serverRunning) {
                 _serverRunning = true;
@@ -238,9 +228,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         Socket socket = new Socket();
         socket.bind(null);
 
-        _logger.d("Attempting to open socket to " + info.groupOwnerAddress + " on port " + PORT);
+        _logger.d("Attempting to open socket to " + info.groupOwnerAddress + "forced to 192.168.49.1 on port " + PORT);
 
-        socket.connect(new InetSocketAddress(info.groupOwnerAddress, PORT), 10000);
+        socket.connect(new InetSocketAddress("192.168.49.1", PORT), 10000);
         return socket;
     }
 
@@ -263,39 +253,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     private Collection<Runnable> createCommonRunnables(@NotNull IPacketManager packetManager) {
         return Arrays.asList(
                 new HeartbeatResponder(new HermesLogger("HeartbeatResponder"), packetManager, new TimeManager(), 7500),
-                new TransmissionRequestResponder(new HermesLogger("TransmissionRequestResponder"), packetManager, getMessageStore())
+                new TransmissionRequestResponder(new HermesLogger("TransmissionRequestResponder"), packetManager, new HermesDbHelper(context))
         );
-    }
-
-    private IMessageStore getMessageStore() {
-
-        return new IMessageStore() {
-
-            @Override
-            public ArrayList<byte[]> getStoredMessageIdentifiers() {
-                ArrayList<byte[]> b = new ArrayList<>();
-                b.add(new byte[] { 0x02 });
-
-                return b;
-            }
-
-            @Override
-            public Message getMessageForIdentifier(byte[] identifier) {
-                if (Arrays.equals(identifier, new byte[]{0x02})) {
-                    return new Message(
-                            new byte[] { 0x01 },
-                            new byte[] { 0x00 },
-                            new byte[] { 0x01, 0x02, 0x03 }
-                    );
-                }
-                return null;
-            }
-
-            @Override
-            public void storeMessage(Message m) {
-                Log.w("hermes", "Storing message " + m);
-            }
-        };
     }
 
     private void onPeerUpdate() {
@@ -304,6 +263,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        this.context = context;
         String action = intent.getAction();
         Log.d("hermes", "Broadcast received of action " + action + " with extras " + BundleHelper.describeContents(intent.getExtras()));
 

@@ -82,12 +82,21 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                 null, null, null, null, null);
         cursor.moveToFirst();
 
+<<<<<<< HEAD
+        while (cursor.moveToNext()) {
+            String msgId = cursor.getString(cursor.getColumnIndex(MessageEntry.COLUMN_MSG_ID));
+            msgIdList.add(msgId.getBytes(Charset.forName("ASCII")));
+
+            Log.d(this.getClass().getCanonicalName(), msgId);
+        }
+=======
         while(cursor.moveToNext()) {
             String msgId = cursor.getString(cursor.getColumnIndex(MessageEntry.COLUMN_MSG_ID));
             msgIdList.add(msgId.getBytes(Charset.forName("US-ASCII")));
             Log.d(this.getClass().getCanonicalName(), msgId);
         }
         cursor.close();
+>>>>>>> 7a1d41839f248e7643055e6fc59a33b3f14bf367
 
         return msgIdList;
     }
