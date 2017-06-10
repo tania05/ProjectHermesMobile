@@ -21,6 +21,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import ca.projecthermes.projecthermes.data.HermesDbHelper;
+import ca.projecthermes.projecthermes.util.Encryption;
 import com.yalantis.phoenix.PullToRefreshView;
 
 import java.util.ArrayList;

@@ -28,6 +28,7 @@ public class PacketSerializer implements IPacketSerializer {
 
     @Override
     public IPayload deserialize(String json) {
+        _logger.i("Attempting to deserialize json " + json);
         JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
 
         if (!jsonElement.isJsonObject()) {

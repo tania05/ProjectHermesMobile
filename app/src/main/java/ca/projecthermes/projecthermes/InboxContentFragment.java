@@ -1,12 +1,22 @@
 package ca.projecthermes.projecthermes;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import ca.projecthermes.projecthermes.data.HermesDbHelper;
+import ca.projecthermes.projecthermes.util.Encryption;
 
 
 /**
@@ -48,6 +58,7 @@ public class InboxContentFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

@@ -81,13 +81,10 @@ public class PacketManager implements Runnable, IPacketManager {
 
 
     private void write(byte[] dest, int off, int val) {
-        _logger.w("Writing int " + val);
         dest[off] = (byte)((val >> 24) & 0xFF);
         dest[off+1] = (byte)((val >> 16) & 0xFF);
         dest[off+2] = (byte)((val >> 8) & 0xFF);
         dest[off+3] = (byte)(val & 0xFF);
-
-        _logger.w("Final int write " + Arrays.toString(dest));
     }
 
     private void write(byte[] dest, int off, byte[] source) {
@@ -96,8 +93,6 @@ public class PacketManager implements Runnable, IPacketManager {
 
     private int readInt(byte[] source, int off) {
         int val = ((source[off] & 0xFF) << 24) | ((source[off+1] & 0xFF) << 16) | ((source[off+2] & 0xFF) << 8) | (source[off+3] & 0xFF);
-        _logger.w("reading int " + val);
-        _logger.w("Final int read " + Arrays.toString(source));
         return val;
     }
 
@@ -154,7 +149,7 @@ public class PacketManager implements Runnable, IPacketManager {
             if (result == -1) {
                 return null;
             }
-            readBytes += length;
+            readBytes += result;
         }
 
         return ret;

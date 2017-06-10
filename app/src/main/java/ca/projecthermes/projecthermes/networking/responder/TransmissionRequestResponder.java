@@ -10,7 +10,7 @@ import ca.projecthermes.projecthermes.networking.packet.IPacketManager;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.networking.payload.TransmissionRequest;
-import ca.projecthermes.projecthermes.util.IMessageStore;
+import ca.projecthermes.projecthermes.data.IMessageStore;
 import ca.projecthermes.projecthermes.util.IObservableListener;
 
 public class TransmissionRequestResponder implements Runnable {

@@ -9,7 +9,7 @@ import ca.projecthermes.projecthermes.mock.networking.MockPacketManager;
 import ca.projecthermes.projecthermes.networking.responder.TransmissionRequestResponder;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.networking.payload.TransmissionRequest;
-import ca.projecthermes.projecthermes.util.IMessageStore;
+import ca.projecthermes.projecthermes.data.IMessageStore;
 import ca.projecthermes.projecthermes.util.IObservableListener;
 import ca.projecthermes.projecthermes.util.NullLogger;
 import ca.projecthermes.projecthermes.util.Source;

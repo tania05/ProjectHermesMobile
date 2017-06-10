@@ -8,7 +8,7 @@ public class HermesDbContract {
         public static final String TABLE_NAME = "Messages";
         public static final String COLUMN_MSG_ID = "msgId";
         public static final String COLUMN_MSG_BODY = "body";
-        public static final String COLUMN_MSG_RECIPIENT = "recipient";
+        public static final String COLUMN_MSG_VERIFIER = "verifier";
     }
     
     public static final class KeyPairEntry implements BaseColumns {
