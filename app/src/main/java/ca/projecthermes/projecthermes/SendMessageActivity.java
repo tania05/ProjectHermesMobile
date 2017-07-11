@@ -2,23 +2,43 @@ package ca.projecthermes.projecthermes;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.KeyPair;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.util.Encryption;
 
 public class SendMessageActivity extends AppCompatActivity {
+
+    private EditText _recipient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +55,7 @@ public class SendMessageActivity extends AppCompatActivity {
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 30000, pendingIntent);
 
         Button sendBtn = (Button) this.findViewById(R.id.sendBtn);
-        final EditText recipient = (EditText)findViewById(R.id.recipient);
+        _recipient = (EditText)findViewById(R.id.recipient);
         final EditText msg = (EditText)findViewById(R.id.msgBody);
 
 
@@ -59,7 +79,43 @@ public class SendMessageActivity extends AppCompatActivity {
         keysBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hermesDbHelper.insertKey(Encryption.generateKeyPair());
+                final KeyPair keyPair = Encryption.generateKeyPair();
+                hermesDbHelper.insertKey(keyPair);
+
+
+                FileOutputStream out = null;
+                try {
+                    BitMatrix encoded = (new BarcodeEncoder()).encode(Base64.encodeToString(Encryption.getEncodedPublicKey(keyPair), Base64.DEFAULT), BarcodeFormat.QR_CODE, 20, 20);
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String imageFileName = "JPEG_" + timeStamp + "_";
+                    File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    File image = File.createTempFile(
+                            imageFileName,  /* prefix */
+                            ".jpg",         /* suffix */
+                            storageDir      /* directory */
+                    );
+
+                    out = new FileOutputStream(image);
+                    Log.d("hermes", "saving to " + image.getAbsolutePath());
+                    Bitmap bit = (new QRCodeEncoder()).encodeAsBitmap(encoded);
+                    bit.compress(Bitmap.CompressFormat.PNG, 100, out);
+
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Images.Media.DATA, image.getAbsolutePath());
+                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+                    getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+                } catch (WriterException | IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (out != null) {
+                        try {
+                            out.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
         });
 
@@ -71,6 +127,30 @@ public class SendMessageActivity extends AppCompatActivity {
             }
         });
 
+
+        Button scanButton = (Button) this.findViewById(R.id.scanButton);
+        scanButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                IntentIntegrator integrator = new IntentIntegrator(SendMessageActivity.this);
+                integrator.setOrientationLocked(true);
+                integrator.setBarcodeImageEnabled(false);
+                integrator.setPrompt("Please scan QR Code");
+                integrator.setCaptureActivity(PortraitCaptureActivity.class);
+                integrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+        if (result != null) {
+            // We have the QR code information.
+            _recipient.setText(result.getContents());
+        }
     }
 
 }
