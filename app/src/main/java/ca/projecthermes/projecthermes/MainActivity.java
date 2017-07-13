@@ -1,17 +1,24 @@
 package ca.projecthermes.projecthermes;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import ca.projecthermes.projecthermes.data.HermesDbContract;
+import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.data.MsgAdapter;
 
 /**
@@ -22,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
     private RecyclerView mRecyclerView;
     private MsgAdapter mMsgAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private final String TAG = this.getClass().getSimpleName();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,12 +40,9 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         mRecyclerView = (RecyclerView) findViewById(R.id.msg_recycler);
         LinearLayoutManager linearLayoutManager =
                 new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerView.setLayoutManager(linearLayoutManager);
-        mRecyclerView.setHasFixedSize(true);
-
         mMsgAdapter = new MsgAdapter(this, this);
         mRecyclerView.setAdapter(mMsgAdapter);
-
+        mRecyclerView.setLayoutManager(linearLayoutManager);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -49,6 +55,45 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                 startActivity(intent);
             }
         });
+
+
+        final HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
+        final SQLiteDatabase db = hermesDbHelper.getReadableDatabase();
+        new MsgLoader().execute(db);
+
+        mSwipeRefreshLayout =
+                (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+        mSwipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
+                        new MsgLoader().execute(db);
+                    }
+
+                }
+        );
+    }
+
+    public class MsgLoader extends AsyncTask<SQLiteDatabase, Void, Cursor> {
+
+        @Override
+        protected Cursor doInBackground(SQLiteDatabase... db) { //TODO: implement other methods later
+            //get all messages for now
+            Cursor cursor = db[0].query(HermesDbContract.MessageEntry.TABLE_NAME,
+                    new String[]{HermesDbContract.MessageEntry.COLUMN_MSG_BODY,
+                            HermesDbContract.MessageEntry.COLUMN_MSG_ID},
+                    null, null, null, null, null);
+            return cursor;
+        }
+
+        @Override
+        protected void onPostExecute(Cursor cursor) {
+            mSwipeRefreshLayout.setRefreshing(false);
+            mMsgAdapter.swapCursor(cursor);
+            mMsgAdapter.notifyDataSetChanged();
+        }
+
     }
 
     @Override
@@ -70,10 +115,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
     @Override
     public void onClick(long msgId) {
-        //TODO: The message view to show in detail
 
     }
-
-
 
 }

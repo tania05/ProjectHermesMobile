@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
     private final Context mContext;
     private final MsgAdapterOnClickHandler mClickHandler;
     private Cursor mCursor;
+    private final String TAG = this.getClass().getSimpleName();
 
     public interface MsgAdapterOnClickHandler {
         void onClick(long msgId);
@@ -27,6 +29,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
     public MsgAdapter(@NonNull Context context, MsgAdapterOnClickHandler clickHandler) {
         mContext = context;
         mClickHandler = clickHandler;
+        Log.d(TAG, "in msg adapter");
     }
 
     @Override
@@ -40,15 +43,17 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
 
     @Override
     public void onBindViewHolder(MsgAdapterViewHolder msgAdapterViewHolder, int position) {
-//        mCursor.moveToPosition(position);
+        mCursor.moveToPosition(position);
 
-//        String msg = mCursor.getString(1);
-        msgAdapterViewHolder.mMsgTextView.setText("1234");
+        String msg = mCursor.getString(1);
+        Log.d(TAG, "pos: " + position);
+        msgAdapterViewHolder.mMsgTextView.setText(msg);
     }
 
     @Override
     public int getItemCount() {
-        if (null == mCursor) return 30; //TODO: FIX
+        if (null == mCursor) return 0;
+        Log.d(TAG, "getItemCount: " + mCursor.getCount());
         return mCursor.getCount();
     }
 
@@ -61,9 +66,8 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
         }
     }
 
-    //TODO: Show message details
-    public void onClick(View v) {
-
+    public void swapCursor(Cursor c) {
+        mCursor = c;
     }
 
 }
