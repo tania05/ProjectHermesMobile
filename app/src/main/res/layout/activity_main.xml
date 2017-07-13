@@ -26,16 +26,18 @@
             app:title="@string/app_name"
             app:titleTextColor="@color/white" />
 
-        <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <android.support.v4.widget.SwipeRefreshLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/swiperefresh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="?attr/actionBarSize">
 
-            <ListView
-                android:id="@+id/list_item"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/msg_recycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
 
         </android.support.v4.widget.SwipeRefreshLayout>
 

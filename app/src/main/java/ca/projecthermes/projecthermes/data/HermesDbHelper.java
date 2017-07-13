@@ -142,7 +142,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     }
 
 
-    public byte[] getLastStorePrivateKey() {
+    public byte[] getLastStoredPrivateKey() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(KeyPairEntry.TABLE_NAME, new String[]{KeyPairEntry.COLUMN_PRIVATE_KEY},
                 null, null, null, null, KeyPairEntry._ID +" DESC", "1");
