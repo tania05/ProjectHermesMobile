@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import ca.projecthermes.projecthermes.R;
 
@@ -37,17 +38,25 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
         LayoutInflater inflater = LayoutInflater.from(mContext);
 
         View view = inflater.inflate(R.layout.list_msg_item, parent, false);
-        view.setFocusable(true);
+
         return new MsgAdapterViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(MsgAdapterViewHolder msgAdapterViewHolder, int position) {
         mCursor.moveToPosition(position);
+        final int pos = position;
 
         String msg = mCursor.getString(1);
         Log.d(TAG, "pos: " + position);
         msgAdapterViewHolder.mMsgTextView.setText(msg);
+
+        msgAdapterViewHolder.mMsgTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(mContext, "Recycle Click" + pos, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
