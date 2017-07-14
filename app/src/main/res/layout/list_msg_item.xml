@@ -21,15 +21,4 @@
         tools:layout_constraintTop_creator="1"
         tools:text="Hello World" />
 
-    <android.support.constraint.Guideline
-        android:id="@+id/horizontal_middle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="visible"
-        app:layout_constraintGuide_percent="0.5"
-        tools:layout_editor_absoluteX="192dp"
-        tools:layout_editor_absoluteY="0dp" />
-
-
 </android.support.constraint.ConstraintLayout>

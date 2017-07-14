@@ -43,6 +43,9 @@ public class SendMessageActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         Button sendBtn = (Button) this.findViewById(R.id.sendBtn);
         _recipient = (EditText)findViewById(R.id.recipient);
         final EditText msg = (EditText)findViewById(R.id.msgBody);
@@ -140,6 +143,12 @@ public class SendMessageActivity extends AppCompatActivity {
             // We have the QR code information.
             _recipient.setText(result.getContents());
         }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
 }
