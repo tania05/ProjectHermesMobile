@@ -1,5 +1,8 @@
 package ca.projecthermes.projecthermes;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,6 +23,7 @@ import android.view.View;
 import ca.projecthermes.projecthermes.data.HermesDbContract;
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.data.MsgAdapter;
+import ca.projecthermes.projecthermes.services.WiFiPeerDiscoverService;
 
 /**
  * Created by abc on 2017-07-12.
@@ -47,6 +51,11 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 15000, pendingIntent);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         final SQLiteDatabase db = hermesDbHelper.getReadableDatabase();
         new MsgLoader().execute(db);
 
+
         mSwipeRefreshLayout =
                 (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
         mSwipeRefreshLayout.setOnRefreshListener(
@@ -68,6 +78,10 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                     @Override
                     public void onRefresh() {
                         Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
+                        Intent wifiIntent = new Intent(getApplicationContext(),
+                                                        WiFiPeerDiscoverService.class);
+                        startService(wifiIntent);
+
                         new MsgLoader().execute(db);
                     }
 
