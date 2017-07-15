@@ -1,6 +1,7 @@
 package ca.projecthermes.projecthermes.data;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -9,9 +10,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import java.util.Arrays;
+
+import ca.projecthermes.projecthermes.MessageDetail;
 import ca.projecthermes.projecthermes.R;
+import ca.projecthermes.projecthermes.networking.payload.Message;
+import ca.projecthermes.projecthermes.util.Encryption;
 
 /**
  * Created by abc on 2017-07-12.
@@ -25,6 +30,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
 
     public interface MsgAdapterOnClickHandler {
         void onClick(long msgId);
+        byte[] getLastStoredPrivateKey();
     }
 
     public MsgAdapter(@NonNull Context context, MsgAdapterOnClickHandler clickHandler) {
@@ -46,17 +52,32 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
     public void onBindViewHolder(MsgAdapterViewHolder msgAdapterViewHolder, int position) {
         mCursor.moveToPosition(position);
         final int pos = position;
-
-        String msg = mCursor.getString(1);
         Log.d(TAG, "pos: " + position);
-        msgAdapterViewHolder.mMsgTextView.setText(msg);
 
-        msgAdapterViewHolder.mMsgTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(mContext, "Recycle Click" + pos, Toast.LENGTH_SHORT).show();
-            }
-        });
+        //TODO: Use all stored private key instead of only last one
+        byte[] verifier = mCursor.getBlob(1);
+        final String verifierString = Encryption.decryptString(verifier, mClickHandler.getLastStoredPrivateKey());
+        Log.d(TAG, "verifier String: " + verifierString);
+        if (Arrays.equals(verifierString.getBytes(HermesDbHelper.CHARSET),(Message.VALID_VERIFIER))) {
+
+            byte[] msgBlob = mCursor.getBlob(2);
+            final String msg = Encryption.decryptString(msgBlob, mClickHandler.getLastStoredPrivateKey());
+            msgAdapterViewHolder.mMsgTextView.setText(msg);
+
+            msgAdapterViewHolder.mMsgTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(mContext, MessageDetail.class);
+                    String msgId = new String(mCursor.getBlob(0), HermesDbHelper.CHARSET);
+                    intent.putExtra("msgId", msgId);
+                    intent.putExtra("verifier", verifierString);
+                    intent.putExtra("msg", msg);
+                    mContext.startActivity(intent);
+                }
+            });
+        } else {
+           msgAdapterViewHolder.mMsgTextView.setVisibility(View.GONE);
+        }
     }
 
     @Override

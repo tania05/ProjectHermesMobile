@@ -4,9 +4,11 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.UUID;
 
+import static ca.projecthermes.projecthermes.util.Encryption.encryptString;
+
 public class Message implements IPayload {
     private static final Charset CHARSET = Charset.forName("UTF-16");
-    private static final byte[] VALID_VERIFIER = "CAFEBABE-DEADBEEF".getBytes(CHARSET);
+    public static final byte[] VALID_VERIFIER = "CAFEBABE-DEADBEEF".getBytes(CHARSET);
 
     public byte[] identifier;
     public byte[] verifier;
@@ -18,20 +20,12 @@ public class Message implements IPayload {
         this.body = body;
     }
 
-    public static byte[] generateIdentifier(byte[] body) {
-//        byte[] identifier = new byte[256];
-//        SHA3Digest md = new SHA3Digest(256);
-//        md.update(body, 0, body.length);
-//        md.doFinal(identifier, 0);
-//        Log.d("From Message.class", new String(identifier));
-//        return identifier;
-        return UUID.randomUUID().toString().getBytes(Charset.forName("US-ASCII"));
+    public static byte[] generateIdentifier() {
+        return UUID.randomUUID().toString().getBytes(CHARSET);
     }
 
     public static byte[] getValidVerifier(byte[] publicKey) {
-        //XXX
-        return VALID_VERIFIER;
-//        return  encryptString(VALID_VERIFIER, publicKey);
+        return  encryptString(VALID_VERIFIER, publicKey);
     }
 
     @Override
