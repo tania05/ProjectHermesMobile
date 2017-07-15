@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:tint="@color/button_grey"
+            android:id="@+id/inbox"
+            android:title="Inbox"
+            android:contentDescription="inbox"
+            />
+        <item
+            android:tint="@color/button_grey"
+            android:id="@+id/outbox"
+            android:title="Outbox"
+            android:contentDescription="outbox"
+            />
+        <item
+            android:tint="@color/button_grey"
+            android:id="@+id/settings"
+            android:title="Settings"
+            android:contentDescription="settings"
+            />
+        <item
+            android:tint="@color/button_grey"
+            android:id="@+id/scan_qr"
+            android:title="Scan QR code"
+            android:contentDescription="scan_qr_code"
+            />
+        <item
+            android:tint="@color/button_grey"
+            android:id="@+id/contacts"
+            android:title="Contacts"
+            android:contentDescription="contacts"
+            />
+
+        <item
+            android:tint="@color/button_grey"
+            android:id="@+id/aliases"
+            android:title="Aliases"
+            android:contentDescription="aliases"
+            />
+    </group>
+</menu>

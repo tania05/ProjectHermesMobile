@@ -3,14 +3,20 @@ package ca.projecthermes.projecthermes;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,15 +26,21 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
+import java.io.File;
+import java.security.KeyPair;
 
 import ca.projecthermes.projecthermes.data.HermesDbContract;
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.data.MsgAdapter;
 import ca.projecthermes.projecthermes.services.WiFiPeerDiscoverService;
+import ca.projecthermes.projecthermes.util.Encryption;
 
-/**
- * Created by abc on 2017-07-12.
- */
 
 public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAdapterOnClickHandler {
 
@@ -36,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
     private MsgAdapter mMsgAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private final String TAG = this.getClass().getSimpleName();
+    private DrawerLayout mDrawerLayout;
     public HermesDbHelper hermesDbHelper;
 
     @Override
@@ -43,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NavigationView nagivationView = (NavigationView) findViewById(R.id.nav_view);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mRecyclerView = (RecyclerView) findViewById(R.id.msg_recycler);
         LinearLayoutManager linearLayoutManager =
                 new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -93,7 +108,62 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
                 }
         );
+
+        nagivationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener()
+                {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        switch(item.getItemId()){
+                            case R.id.inbox:
+                                return true;
+                            case R.id.outbox:
+                                return true;
+                            case R.id.scan_qr:
+                                QRCodeEncoder.scanQRCode(MainActivity.this);
+                                return true;
+                            case R.id.settings:
+                                return true;
+                            case R.id.contacts:
+                                return true;
+                            case R.id.aliases:
+                                final KeyPair keyPair = Encryption.generateKeyPair();
+                                hermesDbHelper.insertKey(keyPair);
+                                SendMessageActivity.saveQRCode(keyPair, MainActivity.this);
+                                File file = new File(MainActivity.this.getFilesDir(),"QR_Code.png");
+                                if(file.exists()){
+                                    ImageView imageView = (ImageView) findViewById(R.id.imageView);
+                                    imageView.setImageURI(Uri.fromFile(file));
+                                }
+                        }
+                        return true;
+                    }
+                }
+
+        );
     }
+
+    @Override
+    public void onActivityResult(int requestCode, final int resultCode, final Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        final IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+        if (result != null && result.getContents() != null ) {
+            // We have the QR code information.
+//            _recipient.setText(result.getContents());
+            new AlertDialog.Builder(this)
+                    .setTitle("ADD TO CONTACT")
+                    .setMessage("Do you want to add to the scanned QR code to contact?")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Toast.makeText(MainActivity.this, result.getContents(), Toast.LENGTH_LONG).show();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, null).show();
+        }
+    }
+
 
     public class MsgLoader extends AsyncTask<SQLiteDatabase, Void, Cursor> {
 

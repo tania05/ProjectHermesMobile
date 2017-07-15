@@ -28,7 +28,9 @@ import com.google.zxing.client.result.AddressBookParsedResult;
 import com.google.zxing.client.result.ParsedResult;
 import com.google.zxing.client.result.ResultParser;
 import com.google.zxing.common.BitMatrix;
+import com.google.zxing.integration.android.IntentIntegrator;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -60,6 +62,15 @@ final class QRCodeEncoder {
 
     private static final int WHITE = 0xFFFFFFFF;
     private static final int BLACK = 0xFF000000;
+
+    static void scanQRCode(Activity sendMessageActivity) {
+        IntentIntegrator integrator = new IntentIntegrator(sendMessageActivity);
+        integrator.setOrientationLocked(true);
+        integrator.setBarcodeImageEnabled(false);
+        integrator.setPrompt("Please scan QR Code");
+        integrator.setCaptureActivity(PortraitCaptureActivity.class);
+        integrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
+    }
 
 
     Bitmap encodeAsBitmap(BitMatrix matrix) throws WriterException {

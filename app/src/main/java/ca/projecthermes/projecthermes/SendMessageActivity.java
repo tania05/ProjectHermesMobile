@@ -1,11 +1,9 @@
 package ca.projecthermes.projecthermes;
 
-import android.content.ContentValues;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
@@ -67,39 +65,7 @@ public class SendMessageActivity extends AppCompatActivity {
                 hermesDbHelper.insertKey(keyPair);
 
 
-                FileOutputStream out = null;
-                try {
-                    BitMatrix encoded = (new BarcodeEncoder()).encode(Base64.encodeToString(Encryption.getEncodedPublicKey(keyPair), Base64.DEFAULT), BarcodeFormat.QR_CODE, 20, 20);
-                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                    String imageFileName = "JPEG_" + timeStamp + "_";
-                    File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                    File image = File.createTempFile(
-                            imageFileName,  /* prefix */
-                            ".jpg",         /* suffix */
-                            storageDir      /* directory */
-                    );
-
-                    out = new FileOutputStream(image);
-                    Log.d("hermes", "saving to " + image.getAbsolutePath());
-                    Bitmap bit = (new QRCodeEncoder()).encodeAsBitmap(encoded);
-                    bit.compress(Bitmap.CompressFormat.PNG, 100, out);
-
-                    ContentValues values = new ContentValues();
-                    values.put(MediaStore.Images.Media.DATA, image.getAbsolutePath());
-                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
-                    getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
-                } catch (WriterException | IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (out != null) {
-                        try {
-                            out.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+                saveQRCode(keyPair, SendMessageActivity.this);
             }
         });
 
@@ -108,14 +74,34 @@ public class SendMessageActivity extends AppCompatActivity {
         scanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IntentIntegrator integrator = new IntentIntegrator(SendMessageActivity.this);
-                integrator.setOrientationLocked(true);
-                integrator.setBarcodeImageEnabled(false);
-                integrator.setPrompt("Please scan QR Code");
-                integrator.setCaptureActivity(PortraitCaptureActivity.class);
-                integrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
+                QRCodeEncoder.scanQRCode(SendMessageActivity.this);
             }
         });
+    }
+
+    static public void saveQRCode(KeyPair keyPair, Activity activity) {
+        FileOutputStream out = null;
+        try {
+            BitMatrix encoded = (new BarcodeEncoder()).encode(Base64.encodeToString(Encryption.getEncodedPublicKey(keyPair), Base64.DEFAULT), BarcodeFormat.QR_CODE, 20, 20);
+            File storageDir = activity.getFilesDir();
+            File image = new File(storageDir, "QR_Code.png");
+
+            out = new FileOutputStream(image);
+            Log.d("hermes", "saving to " + image.getAbsolutePath());
+            Bitmap bit = (new QRCodeEncoder()).encodeAsBitmap(encoded);
+            bit.compress(Bitmap.CompressFormat.PNG, 100, out);
+
+        } catch (WriterException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @Override
