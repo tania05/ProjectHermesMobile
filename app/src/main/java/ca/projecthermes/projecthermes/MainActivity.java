@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
     private MsgAdapter mMsgAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private final String TAG = this.getClass().getSimpleName();
+    public HermesDbHelper hermesDbHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         });
 
 
-        HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
+        hermesDbHelper = new HermesDbHelper(this);
         final SQLiteDatabase db = hermesDbHelper.getReadableDatabase();
         new MsgLoader().execute(db);
 
@@ -97,11 +98,12 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
     public class MsgLoader extends AsyncTask<SQLiteDatabase, Void, Cursor> {
 
         @Override
-        protected Cursor doInBackground(SQLiteDatabase... db) { //TODO: implement other methods later
+        protected Cursor doInBackground(SQLiteDatabase... db) {
             //get all messages for now
             Cursor cursor = db[0].query(HermesDbContract.MessageEntry.TABLE_NAME,
-                    new String[]{HermesDbContract.MessageEntry.COLUMN_MSG_BODY,
-                            HermesDbContract.MessageEntry.COLUMN_MSG_ID},
+                    new String[]{HermesDbContract.MessageEntry.COLUMN_MSG_ID,
+                            HermesDbContract.MessageEntry.COLUMN_MSG_VERIFIER,
+                            HermesDbContract.MessageEntry.COLUMN_MSG_BODY},
                     null, null, null, null, null);
             return cursor;
         }
@@ -132,9 +134,12 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
     public void onClick(long msgId) {
 
+    }
+
+    public byte[] getLastStoredPrivateKey() {
+        return hermesDbHelper.getLastStoredPrivateKey();
     }
 
 }

@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -52,18 +51,11 @@ public class SendMessageActivity extends AppCompatActivity {
 
 
         final HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
-        //XXX
-        hermesDbHelper.insertKey(Encryption.generateKeyPair());
-
 
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                //Demo encryption with own public key
-                hermesDbHelper.storeNewEncryptedMessage(msg.getText().toString(),
-                        hermesDbHelper.getLastStoredPublicKey());
-                Log.d("hermes", System.currentTimeMillis() + "");
+                hermesDbHelper.storeNewEncryptedMessage(msg.getText().toString(), "dummy"); //XXX
             }
         });
 
@@ -108,14 +100,6 @@ public class SendMessageActivity extends AppCompatActivity {
                         }
                     }
                 }
-            }
-        });
-
-        Button lastMsgBtn = (Button) this.findViewById(R.id.lastMsg);
-        lastMsgBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(SendMessageActivity.this, hermesDbHelper.showLastMsg(), Toast.LENGTH_SHORT).show();
             }
         });
 

@@ -20,9 +20,24 @@
             app:titleTextColor="@color/white" />
 
         <TextView
-            android:id="@+id/msgView"
+            android:id="@+id/msgIdView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/msgVeriferView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/msgBodyView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
             android:textSize="18sp"/>
     </LinearLayout>
 

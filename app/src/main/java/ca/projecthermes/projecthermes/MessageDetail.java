@@ -21,8 +21,14 @@ public class MessageDetail extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        TextView msgView = (TextView) findViewById(R.id.msgView);
+        TextView msgView = (TextView) findViewById(R.id.msgIdView);
         msgView.setText(getIntent().getStringExtra("msgId"));
+
+        TextView verifier = (TextView) findViewById(R.id.msgVeriferView);
+        verifier.setText(getIntent().getStringExtra("verifier"));
+
+        TextView msgBodyView = (TextView) findViewById(R.id.msgBodyView);
+        msgBodyView.setText(getIntent().getStringExtra("msg"));
 
     }
 
