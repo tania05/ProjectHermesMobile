@@ -57,13 +57,12 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         onCreate(sqLiteDatabase);
     }
 
-    public void storeNewEncryptedMessage(String msg, String publicKey) {
+    public void storeNewEncryptedMessage(String msg, byte[] publicKeyBytes) {
         byte[] msgBytes = msg.getBytes(CHARSET);
-        byte[] publicKeyBytes = publicKey.getBytes(CHARSET);
-        byte[] encryptedMsg = Encryption.encryptString(msgBytes, getLastStoredPublicKey()); //XXX
+        byte[] encryptedMsg = Encryption.encryptString(msgBytes, publicKeyBytes);
 
         Message m = new Message(Message.generateIdentifier(),
-                                Message.getValidVerifier(getLastStoredPublicKey()), //XXX
+                                Message.getValidVerifier(publicKeyBytes),
                                 encryptedMsg);
         storeMessage(m);
     }
