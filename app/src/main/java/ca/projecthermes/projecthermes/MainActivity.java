@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         });
 
 
-        final HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
+        HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
         final SQLiteDatabase db = hermesDbHelper.getReadableDatabase();
         new MsgLoader().execute(db);
 
