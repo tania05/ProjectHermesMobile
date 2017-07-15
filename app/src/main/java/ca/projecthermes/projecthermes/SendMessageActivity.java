@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyPair;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.util.Encryption;
@@ -54,21 +52,9 @@ public class SendMessageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 hermesDbHelper.storeNewEncryptedMessage(msg.getText().toString(), "dummy"); //XXX
+                onBackPressed();
             }
         });
-
-        Button keysBtn = (Button) this.findViewById(R.id.keys);
-        keysBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final KeyPair keyPair = Encryption.generateKeyPair();
-                hermesDbHelper.insertKey(keyPair);
-
-
-                saveQRCode(keyPair, SendMessageActivity.this);
-            }
-        });
-
 
         Button scanButton = (Button) this.findViewById(R.id.scanButton);
         scanButton.setOnClickListener(new View.OnClickListener() {

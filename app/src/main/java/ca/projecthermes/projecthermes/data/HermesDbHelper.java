@@ -78,7 +78,6 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
 
         long newRowId = db.insert(MessageEntry.TABLE_NAME, null, values);
         Log.d("HermesDbHelper", "Db Row " + newRowId);
-        db.close();
     }
 
     @Override
@@ -105,7 +104,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         SQLiteDatabase db = this.getReadableDatabase();
 
         String query = "SELECT " + COLUMN_MSG_ID + "," + COLUMN_MSG_BODY + "," +
-                COLUMN_MSG_VERIFIER + " FROM " + MessageEntry.TABLE_NAME + " çWHERE " +
+                COLUMN_MSG_VERIFIER + " FROM " + MessageEntry.TABLE_NAME + " WHERE " +
                 COLUMN_MSG_ID + " = " + identifier;
         Cursor cursor = db.rawQuery(query, null);
 
@@ -129,7 +128,6 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
 
         long newRowId = db.insert(KeyPairEntry.TABLE_NAME, null, values);
 
-        db.close();
     }
 
     public byte[] getLastStoredPublicKey() {

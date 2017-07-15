@@ -27,13 +27,16 @@
                 android:id="@+id/recipient"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:hint="To"
                 android:layout_weight="1" />
 
             <Button
                 android:id="@+id/scanButton"
-                android:layout_width="100dp"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
-                android:text="Scan" />
+                android:drawableLeft="@drawable/ic_camera_black_24dp"
+                style="?android:attr/borderlessButtonStyle" />
+
         </LinearLayout>
 
         <EditText
@@ -41,20 +44,17 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:hint="Compose message"
             android:gravity="top" />
 
         <Button
-            android:layout_width="100dp"
+            android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:text="Send"
-            android:id="@+id/sendBtn" />
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="Keys"
-            android:id="@+id/keys"/>
+            android:id="@+id/sendBtn"
+            android:drawableRight="@drawable/ic_send_black_24dp"
+            style="?android:attr/borderlessButtonStyle" />
+
 
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

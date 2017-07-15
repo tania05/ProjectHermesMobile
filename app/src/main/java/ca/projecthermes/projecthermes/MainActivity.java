@@ -187,6 +187,14 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        final SQLiteDatabase db = hermesDbHelper.getReadableDatabase();
+        new MsgLoader().execute(db);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
