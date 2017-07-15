@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        NavigationView nagivationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mRecyclerView = (RecyclerView) findViewById(R.id.msg_recycler);
         LinearLayoutManager linearLayoutManager =
@@ -108,8 +108,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
                 }
         );
-
-        nagivationView.setNavigationItemSelectedListener(
+        navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener()
                 {
                     @Override
