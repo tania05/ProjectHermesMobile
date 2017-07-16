@@ -77,13 +77,17 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         setSupportActionBar(toolbar);
         ActionBar supportActionBar = getSupportActionBar();
         if (supportActionBar != null) {
+
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+
             VectorDrawableCompat indicator
                     = VectorDrawableCompat.create(getResources(), R.drawable.ic_menu_black_24dp, getTheme());
             indicator.setTint(ResourcesCompat.getColor(getResources(),R.color.white,getTheme()));
             supportActionBar.setHomeAsUpIndicator(indicator);
             supportActionBar.setDisplayHomeAsUpEnabled(true);
         }else{
-            Log.e("TJIS", "dfeiourioe");
+            Log.e("Toolbar", "Toolbar not found");
         }
 
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -209,21 +213,11 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == android.R.id.home) {
+        if (id == android.R.id.home) {
             mDrawerLayout.openDrawer(GravityCompat.START);
         }
-
         return super.onOptionsItemSelected(item);
     }
 
