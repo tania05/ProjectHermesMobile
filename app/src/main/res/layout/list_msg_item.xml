@@ -17,8 +17,8 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintTop_creator="1"
-        android:paddingTop="36dp"
-        android:paddingBottom="36dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="18dp"
         android:background="?attr/selectableItemBackground"
         tools:text="Hello World" />
 

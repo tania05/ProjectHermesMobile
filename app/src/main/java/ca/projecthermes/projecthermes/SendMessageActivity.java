@@ -51,7 +51,10 @@ public class SendMessageActivity extends AppCompatActivity {
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hermesDbHelper.storeNewEncryptedMessage(msg.getText().toString(), "dummy"); //XXX
+                String recipient = _recipient.getText().toString();
+                byte[] decodedRecipient = Base64.decode(recipient, Base64.DEFAULT);
+
+                hermesDbHelper.storeNewEncryptedMessage(msg.getText().toString(), decodedRecipient);
                 onBackPressed();
             }
         });

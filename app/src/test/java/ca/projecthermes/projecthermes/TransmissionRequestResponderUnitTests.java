@@ -56,7 +56,7 @@ public class TransmissionRequestResponderUnitTests {
         MockPacketManager pm = new MockPacketManager();
         IMessageStore store = getStore((byte) 0, null);
 
-        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store, new Source<byte[]>());
 
 
         pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
@@ -92,7 +92,7 @@ public class TransmissionRequestResponderUnitTests {
         MockPacketManager pm = new MockPacketManager();
         IMessageStore store = getStore((byte) 0, null);
 
-        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store, new Source<byte[]>());
 
 
         pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
@@ -128,7 +128,7 @@ public class TransmissionRequestResponderUnitTests {
         MockPacketManager pm = new MockPacketManager();
         IMessageStore store = getStore((byte) 0, null);
 
-        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store, new Source<byte[]>());
 
         pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
             @Override
@@ -160,7 +160,7 @@ public class TransmissionRequestResponderUnitTests {
         MockPacketManager pm = new MockPacketManager();
         IMessageStore store = getStore((byte) 0, null);
 
-        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store, new Source<byte[]>());
 
 
         pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
@@ -228,7 +228,7 @@ public class TransmissionRequestResponderUnitTests {
             }
         };
 
-        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store, new Source<byte[]>());
 
 
         pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
@@ -297,11 +297,49 @@ public class TransmissionRequestResponderUnitTests {
         });
 
         MockPacketManager pm = new MockPacketManager();
-        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store);
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store, new Source<byte[]>());
 
         responder.run();
 
         pm.packetReceiveSource.update(sentMessage);
         assertTrue(wasStored[0]);
+    }
+
+    public void WillSendAMessageWhenOneIsAdded() {
+        final Message[] sent = new Message[] { null };
+
+        MockPacketManager pm = new MockPacketManager();
+        IMessageStore store = getStore((byte) 0, null);
+
+
+        Source<byte[]> messageAddedSource = new Source<>();
+        TransmissionRequestResponder responder = new TransmissionRequestResponder(new NullLogger(), pm, store, messageAddedSource);
+
+        pm.sendMessageSource.subscribe(new IObservableListener<Object>() {
+            @Override
+            public void update(Object arg) {
+                if (arg instanceof Message) {
+                    sent[0] = (Message) arg;
+                }
+            }
+
+            @Override
+            public void error(Exception e) {
+                throw new RuntimeException("NETBC");
+
+            }
+        });
+
+        responder.run();
+
+        byte[] identifier = store.getStoredMessageIdentifiers().get(0);
+        Message expected = store.getMessageForIdentifier(identifier);
+
+        messageAddedSource.update(identifier);
+
+
+        assertEquals(expected.identifier, sent[0].identifier);
+        assertEquals(expected.body, sent[0].body);
+        assertEquals(expected.verifier, sent[0].verifier);
     }
 }
