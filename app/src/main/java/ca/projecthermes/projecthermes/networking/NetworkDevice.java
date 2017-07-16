@@ -11,6 +11,7 @@ import android.util.Log;
 import org.jetbrains.annotations.NotNull;
 
 import ca.projecthermes.projecthermes.exceptions.IntValueException;
+import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
 import ca.projecthermes.projecthermes.util.IFactory;
 import ca.projecthermes.projecthermes.util.IObservable;
 import ca.projecthermes.projecthermes.util.Source;
@@ -96,6 +97,21 @@ public class NetworkDevice implements INetworkDevice {
                 }
             });
         }
+    }
+
+    @Override
+    public void disconnect() {
+        _wifiP2pManager.removeGroup(_channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d("NetworkDevice", "Manual disconnect success.");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.e("NetworkDevice", "Failed to disconnect from device... ");
+            }
+        });
     }
 
     @Override

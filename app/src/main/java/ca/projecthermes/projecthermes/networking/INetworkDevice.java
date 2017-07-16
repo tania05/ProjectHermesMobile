@@ -16,6 +16,7 @@ public interface INetworkDevice {
     void onSignalLoss();
 
     void connect();
+    void disconnect();
 
     IObservable<WifiP2pInfo> requestNetworkInfo();
 

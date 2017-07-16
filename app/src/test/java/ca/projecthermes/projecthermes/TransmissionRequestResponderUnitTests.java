@@ -34,6 +34,7 @@ public class TransmissionRequestResponderUnitTests {
                     return new Message(
                             new byte[] { testIdentifier },
                             new byte[] { 0x00 },
+                            new byte[] { 0x00 },
                             new byte[] { 0x01, 0x02, 0x03 }
                     );
                 }
@@ -209,12 +210,14 @@ public class TransmissionRequestResponderUnitTests {
                     return new Message(
                             new byte[] { 0 }, // identifier
                             new byte[] { 0 }, // verifier
+                            new byte[] { 0 },
                             new byte[] { 0, 0, 0 } // body
                     );
 
                 } else if (Arrays.equals(identifier, new byte[] { 1 })) {
                     return new Message(
                             new byte[] { 1 },
+                            new byte[] { 0 },
                             new byte[] { 0 },
                             new byte[] { 1, 1, 1 }
                     );
@@ -278,6 +281,7 @@ public class TransmissionRequestResponderUnitTests {
         IMessageStore store = getStore((byte) 0, storeSource);
         final Message sentMessage = new Message(
                 new byte[] { 0x01 },
+                new byte[] { 0x00 },
                 new byte[] { 0x00 },
                 new byte[] { 0x00, 0x01, 0x02, 0x03 }
         );

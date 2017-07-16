@@ -56,12 +56,17 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
 
         //TODO: Use all stored private key instead of only last one
         byte[] verifier = mCursor.getBlob(1);
-        final String verifierString = Encryption.decryptString(verifier, mClickHandler.getLastStoredPrivateKey());
+        final byte[] verifierBytes = Encryption.decryptString(verifier, mClickHandler.getLastStoredPrivateKey());
+        final String verifierString = (verifierBytes == null) ? "" : new String(verifierBytes, HermesDbHelper.CHARSET);
         Log.d(TAG, "verifier String: " + verifierString);
-        if (Arrays.equals(verifierString.getBytes(HermesDbHelper.CHARSET),(Message.VALID_VERIFIER))) {
+        if (Arrays.equals(verifierBytes,(Message.VALID_VERIFIER))) {
 
-            byte[] msgBlob = mCursor.getBlob(2);
-            final String msg = Encryption.decryptString(msgBlob, mClickHandler.getLastStoredPrivateKey());
+            byte[] encryptedKeyBlob = mCursor.getBlob(2);
+            byte[] encryptedMessageBlob = mCursor.getBlob(3);
+            byte[] keyBlob = Encryption.decryptString(encryptedKeyBlob, mClickHandler.getLastStoredPrivateKey());
+            byte[] msgBlob = Encryption.decryptUnderAes(keyBlob, encryptedMessageBlob);
+
+            final String msg = new String(msgBlob, HermesDbHelper.CHARSET);
             msgAdapterViewHolder.mMsgTextView.setText(msg);
 
             msgAdapterViewHolder.mMsgTextView.setOnClickListener(new View.OnClickListener() {

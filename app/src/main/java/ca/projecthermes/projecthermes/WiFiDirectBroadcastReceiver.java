@@ -137,7 +137,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
                         //Temporary block
                         try {
-                            Util.sleepRetryInvoker(5000, 5, new Util.IInvokerCallback() {
+                            Util.sleepRetryInvoker(5000, 30, new Util.IInvokerCallback() {
                                 @Override
                                 public void call() throws Exception {
                                     _logger.d("Attempting to open client socket");
@@ -153,7 +153,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                             //blocks
                             onSocketConnectRunnable(socket[0], false).run();
                         } catch (InvokerFailException e) {
-                            _logger.e("Failed to open client socket 5 times, aborting.");
+                            _logger.e("Failed to open client socket 30 times, aborting.");
+                            device.disconnect();
                         }
 
                     }
