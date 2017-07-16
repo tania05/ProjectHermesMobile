@@ -226,6 +226,7 @@ public class PacketManager implements Runnable, IPacketManager {
             }
         }
 
+        //TODO we have memory leaks with the sources, we should fix that.
         _disconnectSource.update(null);
     }
 }

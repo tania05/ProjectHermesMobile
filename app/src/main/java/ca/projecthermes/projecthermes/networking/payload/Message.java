@@ -12,11 +12,13 @@ public class Message implements IPayload {
 
     public byte[] identifier;
     public byte[] verifier;
+    public byte[] key;
     public byte[] body;
 
-    public Message(byte[] identifier, byte[] verifier, byte[] body) {
+    public Message(byte[] identifier, byte[] verifier, byte[] key, byte[] body) {
         this.identifier = identifier;
         this.verifier = verifier;
+        this.key = key;
         this.body = body;
     }
 
@@ -45,6 +47,9 @@ public class Message implements IPayload {
             return false;
         }
         if (!Arrays.equals(this.verifier, otherMessage.verifier)) {
+            return false;
+        }
+        if (!Arrays.equals(this.key, otherMessage.key)) {
             return false;
         }
         if (!Arrays.equals(this.body, otherMessage.body)) {

@@ -185,6 +185,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
             Cursor cursor = db[0].query(HermesDbContract.MessageEntry.TABLE_NAME,
                     new String[]{HermesDbContract.MessageEntry.COLUMN_MSG_ID,
                             HermesDbContract.MessageEntry.COLUMN_MSG_VERIFIER,
+                            HermesDbContract.MessageEntry.COLUMN_MSG_KEY,
                             HermesDbContract.MessageEntry.COLUMN_MSG_BODY},
                     null, null, null, null, null);
             return cursor;
