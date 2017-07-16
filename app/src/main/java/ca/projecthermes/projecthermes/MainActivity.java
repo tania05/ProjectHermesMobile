@@ -144,14 +144,9 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                             case R.id.contacts:
                                 return true;
                             case R.id.aliases:
-                                final KeyPair keyPair = Encryption.generateKeyPair();
-                                hermesDbHelper.insertKey(keyPair);
-                                SendMessageActivity.saveQRCode(keyPair, MainActivity.this);
-                                File file = new File(MainActivity.this.getFilesDir(),"QR_Code.png");
-                                if(file.exists()){
-                                    ImageView imageView = (ImageView) findViewById(R.id.imageView);
-                                    imageView.setImageURI(Uri.fromFile(file));
-                                }
+
+                                Intent intent = new Intent(MainActivity.this, AliasesActivity.class);
+                                startActivity(intent);
                         }
                         return true;
                     }
