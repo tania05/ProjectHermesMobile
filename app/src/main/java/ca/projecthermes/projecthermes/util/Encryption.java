@@ -109,7 +109,7 @@ public class Encryption {
             e.printStackTrace();
         }
 
-        return new byte[] {};
+        return null;
     }
 
     public static byte[] decryptUnderAes(byte[] key, byte[] encryptedData) {
@@ -127,6 +127,6 @@ public class Encryption {
             e.printStackTrace();
         }
 
-        return new byte[] {};
+        return null;
     }
 }
