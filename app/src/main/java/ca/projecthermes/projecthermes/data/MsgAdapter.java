@@ -68,7 +68,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, MessageDetail.class);
-                    String msgId = new String(mCursor.getBlob(0), HermesDbHelper.CHARSET);
+                    String msgId = mCursor.getString(0);
                     intent.putExtra("msgId", msgId);
                     intent.putExtra("verifier", verifierString);
                     intent.putExtra("msg", msg);
@@ -76,7 +76,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
                 }
             });
         } else {
-           msgAdapterViewHolder.mMsgTextView.setVisibility(View.GONE);
+            msgAdapterViewHolder.mMsgTextView.setVisibility(View.GONE);
         }
     }
 

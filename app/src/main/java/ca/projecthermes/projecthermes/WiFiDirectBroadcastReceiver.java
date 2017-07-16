@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -32,6 +31,7 @@ import ca.projecthermes.projecthermes.networking.responder.TransmissionRequestRe
 import ca.projecthermes.projecthermes.util.BundleHelper;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
 import ca.projecthermes.projecthermes.util.IObservableListener;
+import ca.projecthermes.projecthermes.util.Source;
 import ca.projecthermes.projecthermes.util.TimeManager;
 import ca.projecthermes.projecthermes.util.Util;
 
@@ -44,6 +44,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     private final Object _serverRunningLock = new Object();
     private boolean _serverRunning = false;
+
+    private final Source<byte[]> _messageAddedSource = new Source<>();
 
     private Context context;
 
@@ -253,7 +255,12 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     private Collection<Runnable> createCommonRunnables(@NotNull IPacketManager packetManager) {
         return Arrays.asList(
                 new HeartbeatResponder(new HermesLogger("HeartbeatResponder"), packetManager, new TimeManager(), 7500),
-                new TransmissionRequestResponder(new HermesLogger("TransmissionRequestResponder"), packetManager, new HermesDbHelper(context))
+                new TransmissionRequestResponder(
+                        new HermesLogger("TransmissionRequestResponder"),
+                        packetManager,
+                        new HermesDbHelper(context),
+                        _messageAddedSource
+                )
         );
     }
 
@@ -276,6 +283,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             onPeerUpdate();
+        } else if (HermesDbHelper.MESSAGE_ADDED_ACTION.equals(action)) {
+            byte[] identifier = intent.getByteArrayExtra(HermesDbHelper.EXTRA_MESSAGE_IDENTIFIER);
+            _messageAddedSource.update(identifier);
         }
     }
 }

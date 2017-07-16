@@ -11,23 +11,28 @@ import ca.projecthermes.projecthermes.networking.payload.IPayload;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.networking.payload.TransmissionRequest;
 import ca.projecthermes.projecthermes.data.IMessageStore;
+import ca.projecthermes.projecthermes.util.IObservable;
 import ca.projecthermes.projecthermes.util.IObservableListener;
+import ca.projecthermes.projecthermes.util.Util;
 
 public class TransmissionRequestResponder implements Runnable {
     private final IHermesLogger _logger;
     private final IPacketManager _packetManager;
     private final IMessageStore _messageStore;
+    private final IObservable<byte[]> _messageAddedObservable;
 
     private boolean _running = false;
 
     public TransmissionRequestResponder(
-        @NotNull IHermesLogger logger,
-        @NotNull IPacketManager packetManager,
-        @NotNull IMessageStore messageStore
-    ) {
+            @NotNull IHermesLogger logger,
+            @NotNull IPacketManager packetManager,
+            @NotNull IMessageStore messageStore,
+            @NotNull IObservable<byte[]> messageAddedObservable
+            ) {
         _logger = logger;
         _packetManager = packetManager;
         _messageStore = messageStore;
+        _messageAddedObservable = messageAddedObservable;
 
         subscribeToObservables();
     }
@@ -52,6 +57,23 @@ public class TransmissionRequestResponder implements Runnable {
                 } else if (arg instanceof Message) {
                     onMessageReceived((Message) arg);
                 }
+            }
+
+            @Override
+            public void error(Exception e) {
+
+            }
+        });
+
+        _messageAddedObservable.subscribe(new IObservableListener<byte[]>() {
+            @Override
+            public void update(byte[] arg) {
+                ArrayList<byte[]> identifiers = new ArrayList<>();
+                identifiers.add(arg);
+
+                // Offer the message.
+                TransmissionRequest messageOffer = new TransmissionRequest(false, identifiers);
+                _packetManager.sendMessage(messageOffer);
             }
 
             @Override
@@ -91,6 +113,7 @@ public class TransmissionRequestResponder implements Runnable {
             for (byte[] offeringIdentifier : request.messageIdentifiers) {
                 Message message = _messageStore.getMessageForIdentifier(offeringIdentifier);
                 if (message == null) {
+                    _logger.d("I do not have message identifier " + Util.bytesToHex(offeringIdentifier));
                     requestingIdentifiers.add(offeringIdentifier);
                 }
             }
@@ -103,8 +126,6 @@ public class TransmissionRequestResponder implements Runnable {
 
     private void onMessageReceived(Message message) {
         _logger.d("Received message: " + message);
-
-        //TODO we could potentially be trying to store the same message twice, the store should handle this.
         _messageStore.storeMessage(message);
     }
 }

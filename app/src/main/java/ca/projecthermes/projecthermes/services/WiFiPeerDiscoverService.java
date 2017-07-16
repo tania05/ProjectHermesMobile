@@ -13,6 +13,7 @@ import android.util.Log;
 
 import ca.projecthermes.projecthermes.HermesLogger;
 import ca.projecthermes.projecthermes.WiFiDirectBroadcastReceiver;
+import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.networking.INetworkDevice;
 import ca.projecthermes.projecthermes.networking.INetworkDeviceFactory;
 import ca.projecthermes.projecthermes.networking.NetworkDevice;
@@ -52,6 +53,7 @@ public class WiFiPeerDiscoverService extends IntentService {
         filter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         filter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         filter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        filter.addAction(HermesDbHelper.MESSAGE_ADDED_ACTION);
         registerReceiver(receiver, filter);
     }
 

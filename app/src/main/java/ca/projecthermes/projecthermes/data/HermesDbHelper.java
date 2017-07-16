@@ -2,6 +2,7 @@ package ca.projecthermes.projecthermes.data;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -15,6 +16,7 @@ import ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.Encryption;
+import ca.projecthermes.projecthermes.util.Util;
 
 import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_PRIVATE_KEY;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_PUBLIC_KEY;
@@ -24,11 +26,17 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
     public static final Charset CHARSET = Charset.forName("UTF-16");
+
+    public static final String MESSAGE_ADDED_ACTION = "ca.projecthermes.projecthermes.broadcast.MESSAGE_ADDED";
+    public static final String EXTRA_MESSAGE_IDENTIFIER = "identifier";
+
+    private final Context _context;
 
     public HermesDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        _context = context;
     }
 
     @Override
@@ -37,7 +45,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
 
                 "CREATE TABLE " + MessageEntry.TABLE_NAME + " (" +
                         MessageEntry._ID                + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        COLUMN_MSG_ID     + " BLOB NOT NULL, " +
+                        COLUMN_MSG_ID     + " TEXT NOT NULL, " +
                         COLUMN_MSG_BODY   + " BLOB NOT NULL, " +
                         COLUMN_MSG_VERIFIER    + " BLOB NOT NULL" + ");";
 
@@ -54,6 +62,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MessageEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + KeyPairEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 
@@ -64,19 +73,31 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         Message m = new Message(Message.generateIdentifier(),
                                 Message.getValidVerifier(publicKeyBytes),
                                 encryptedMsg);
+
+        Log.d("hermes", "Added message with identifier: " + Util.bytesToHex(m.identifier));
         storeMessage(m);
     }
 
     public void storeMessage(Message m) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_MSG_ID, m.identifier);
-        values.put(COLUMN_MSG_BODY, m.body);
-        values.put(COLUMN_MSG_VERIFIER, m.verifier);
+        if (getMessageForIdentifier(m.identifier) != null) {
+            Log.w("HermesDbHelper", "Already have this message stored, skipping.");
+            // TODO probably a race condition here.
+        } else {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_MSG_ID, new String(m.identifier, CHARSET));
+            values.put(COLUMN_MSG_BODY, m.body);
+            values.put(COLUMN_MSG_VERIFIER, m.verifier);
 
-        long newRowId = db.insert(MessageEntry.TABLE_NAME, null, values);
-        Log.d("HermesDbHelper", "Db Row " + newRowId);
+            long newRowId = db.insert(MessageEntry.TABLE_NAME, null, values);
+            Log.d("HermesDbHelper", "Db Row " + newRowId);
+
+            Intent broadcast = new Intent();
+            broadcast.setAction(MESSAGE_ADDED_ACTION);
+            broadcast.putExtra(EXTRA_MESSAGE_IDENTIFIER, m.identifier);
+            _context.sendBroadcast(broadcast);
+        }
     }
 
     @Override
@@ -102,18 +123,25 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String query = "SELECT " + COLUMN_MSG_ID + "," + COLUMN_MSG_BODY + "," +
+        String hexEncoding = Util.bytesToHex(identifier);
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MSG_ID + "," + COLUMN_MSG_BODY + "," +
                 COLUMN_MSG_VERIFIER + " FROM " + MessageEntry.TABLE_NAME + " WHERE " +
-                COLUMN_MSG_ID + " = " + identifier;
-        Cursor cursor = db.rawQuery(query, null);
+                COLUMN_MSG_ID + " = ?",
+                new String[] { new String(identifier, CHARSET) }
+        );
+
+
 
         if (cursor.moveToFirst()) {
-            byte[] msgId = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_ID));
+            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(CHARSET);
             byte[] body = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_BODY));
             byte[] verifier = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_VERIFIER));
 
+            cursor.close();
             return new Message(msgId, verifier, body);
         }
+
+        cursor.close();
         return null;
     }
 
@@ -156,5 +184,6 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         cursor.close();
         return null;
     }
+
 
 }
