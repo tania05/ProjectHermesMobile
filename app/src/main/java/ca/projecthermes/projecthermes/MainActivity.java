@@ -27,6 +27,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -190,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             String contactName = text.getText().toString();
-                                            if(hermesDbHelper.insertContact(result.getContents(), contactName))
+                                            if(hermesDbHelper.insertContact(Base64.decode(result.getContents(), Base64.DEFAULT), contactName))
                                                 Toast.makeText(MainActivity.this, contactName+ " has been added to the contact.", Toast.LENGTH_LONG).show();
                                         }
                                     }).setNegativeButton(android.R.string.cancel, null).show();

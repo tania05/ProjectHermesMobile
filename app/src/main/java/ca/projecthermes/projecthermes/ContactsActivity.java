@@ -1,5 +1,6 @@
 package ca.projecthermes.projecthermes;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -32,8 +33,11 @@ public class ContactsActivity extends AppCompatActivity {
 
             @Override
             public void onclick(String contactName) {
-
-                Toast.makeText(ContactsActivity.this, contactName, Toast.LENGTH_SHORT).show();
+                byte[] recipientKey =  hermesDbHelper.getReciepientKey(contactName);
+                Intent intent = new Intent(ContactsActivity.this, SendMessageActivity.class);
+                intent.putExtra(SendMessageActivity.RECIEPEINT_ADDR, recipientKey);
+                startActivity(intent);
+                Toast.makeText(ContactsActivity.this, recipientKey.toString(), Toast.LENGTH_SHORT).show();
             }
         });
 
