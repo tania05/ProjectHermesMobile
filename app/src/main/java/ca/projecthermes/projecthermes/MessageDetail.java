@@ -24,8 +24,8 @@ public class MessageDetail extends AppCompatActivity {
         TextView msgView = (TextView) findViewById(R.id.msgIdView);
         msgView.setText(getIntent().getStringExtra("msgId"));
 
-        TextView verifier = (TextView) findViewById(R.id.msgVeriferView);
-        verifier.setText(getIntent().getStringExtra("verifier"));
+        TextView alias = (TextView) findViewById(R.id.msgAliasView);
+        alias.setText(getIntent().getStringExtra("alias"));
 
         TextView msgBodyView = (TextView) findViewById(R.id.msgBodyView);
         msgBodyView.setText(getIntent().getStringExtra("msg"));

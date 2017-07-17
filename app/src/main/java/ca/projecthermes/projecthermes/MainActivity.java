@@ -205,11 +205,10 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         @Override
         protected Cursor doInBackground(SQLiteDatabase... db) {
             //get all messages for now
-            Cursor cursor = db[0].query(HermesDbContract.MessageEntry.TABLE_NAME,
-                    new String[]{HermesDbContract.MessageEntry.COLUMN_MSG_ID,
-                            HermesDbContract.MessageEntry.COLUMN_MSG_VERIFIER,
-                            HermesDbContract.MessageEntry.COLUMN_MSG_KEY,
-                            HermesDbContract.MessageEntry.COLUMN_MSG_BODY},
+            Cursor cursor = db[0].query(HermesDbContract.DecodedEntry.TABLE_NAME,
+                    new String[]{HermesDbContract.DecodedEntry.COLUMN_MSG_ID,
+                            HermesDbContract.DecodedEntry.COLUMN_DECODING_ALIAS,
+                            HermesDbContract.DecodedEntry.COLUMN_MSG_BODY},
                     null, null, null, null, null);
             return cursor;
         }
