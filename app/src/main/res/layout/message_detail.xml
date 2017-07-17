@@ -27,13 +27,6 @@
             android:textSize="18sp"/>
 
         <TextView
-            android:id="@+id/msgAliasView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:textSize="18sp"/>
-
-        <TextView
             android:id="@+id/msgBodyView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
