@@ -19,6 +19,8 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,7 +32,7 @@ import ca.projecthermes.projecthermes.util.Encryption;
 public class SendMessageActivity extends AppCompatActivity {
 
     private EditText _recipient;
-
+    public static final String RECIEPEINT_ADDR = "recient_addr";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,8 +45,13 @@ public class SendMessageActivity extends AppCompatActivity {
 
         Button sendBtn = (Button) this.findViewById(R.id.sendBtn);
         _recipient = (EditText)findViewById(R.id.recipient);
-        final EditText msg = (EditText)findViewById(R.id.msgBody);
 
+        byte [] recipientAddr = getIntent().getByteArrayExtra(RECIEPEINT_ADDR);
+
+        if(recipientAddr!= null)
+            _recipient.setText(Base64.encodeToString(recipientAddr, Base64.DEFAULT));
+
+        final EditText msg = (EditText)findViewById(R.id.msgBody);
 
         final HermesDbHelper hermesDbHelper = new HermesDbHelper(this);
 

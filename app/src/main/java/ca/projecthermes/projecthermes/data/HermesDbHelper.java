@@ -242,7 +242,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         }
     }
 
-    public boolean insertContact(String key, String keyName){
+    public boolean insertContact(byte[] key, String keyName){
         try {
             SQLiteDatabase db = this.getWritableDatabase();
 
@@ -254,17 +254,17 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
             return true;
         }
         catch (SQLException e){
-            Log.e("Insert Key FAILED", Arrays.toString(e.getStackTrace()));
+            Log.e("Insert contct FAILED", Arrays.toString(e.getStackTrace()));
             return false;
         }
     }
 
     public byte[] getReciepientKey(String contactName){
         SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(ContactKeysEntry.TABLE_NAME, new String [] {ContactKeysEntry.COLUMN_CONTACT_PUBLIC_KEY}, COLUMN_CONTACT_NAME + " = ?",new String[]{contactName}, null, null, null);
+//        Cursor cursor = db.rawQuery("SELECT " + COLUMN_PUBLIC_KEY + " FROM " + ContactKeysEntry.TABLE_NAME + " WHERE " +
+//                        COLUMN_CONTACT_NAME + " = ?", new String []{contactName});
 
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_PUBLIC_KEY + " FROM " + ContactKeysEntry.TABLE_NAME + " WHERE " +
-                        COLUMN_CONTACT_NAME + " = ?", new String []{contactName});
-        
         if(cursor.moveToFirst()){
             byte [] publicKey = cursor.getBlob(cursor.getColumnIndex(COLUMN_CONTACT_PUBLIC_KEY));
             cursor.close();
