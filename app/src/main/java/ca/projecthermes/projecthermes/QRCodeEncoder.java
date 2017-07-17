@@ -29,6 +29,7 @@ import com.google.zxing.client.result.ParsedResult;
 import com.google.zxing.client.result.ResultParser;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.integration.android.IntentIntegrator;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import android.app.Activity;
 import android.content.Context;
@@ -38,17 +39,23 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+
+import ca.projecthermes.projecthermes.util.Encryption;
 
 /**
  * This class does the work of decoding the user's request and extracting all the data
@@ -70,6 +77,31 @@ final class QRCodeEncoder {
         integrator.setPrompt("Please scan QR Code");
         integrator.setCaptureActivity(PortraitCaptureActivity.class);
         integrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
+    }
+
+    static public void saveQRCode(KeyPair keyPair, Activity activity, String keyName) {
+        FileOutputStream out = null;
+        try {
+            BitMatrix encoded = (new BarcodeEncoder()).encode(Base64.encodeToString(Encryption.getEncodedPublicKey(keyPair), Base64.DEFAULT), BarcodeFormat.QR_CODE, 20, 20);
+            File storageDir = activity.getFilesDir();
+            File image = new File(storageDir, keyName+".png");
+
+            out = new FileOutputStream(image);
+            Log.d("hermes", "saving to " + image.getAbsolutePath());
+            Bitmap bit = (new QRCodeEncoder()).encodeAsBitmap(encoded);
+            bit.compress(Bitmap.CompressFormat.PNG, 100, out);
+
+        } catch (WriterException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 

@@ -6,7 +6,7 @@
     android:padding="?attr/dialogPreferredPadding">
 
     <EditText
-        android:id="@+id/editText"
+        android:id="@+id/edit_alias_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"

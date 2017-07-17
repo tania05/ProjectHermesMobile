@@ -68,31 +68,6 @@ public class SendMessageActivity extends AppCompatActivity {
         });
     }
 
-    static public void saveQRCode(KeyPair keyPair, Activity activity) {
-        FileOutputStream out = null;
-        try {
-            BitMatrix encoded = (new BarcodeEncoder()).encode(Base64.encodeToString(Encryption.getEncodedPublicKey(keyPair), Base64.DEFAULT), BarcodeFormat.QR_CODE, 20, 20);
-            File storageDir = activity.getFilesDir();
-            File image = new File(storageDir, "QR_Code.png");
-
-            out = new FileOutputStream(image);
-            Log.d("hermes", "saving to " + image.getAbsolutePath());
-            Bitmap bit = (new QRCodeEncoder()).encodeAsBitmap(encoded);
-            bit.compress(Bitmap.CompressFormat.PNG, 100, out);
-
-        } catch (WriterException | IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);

@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -31,6 +32,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -54,13 +56,14 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
     private final String TAG = this.getClass().getSimpleName();
     private DrawerLayout mDrawerLayout;
     public HermesDbHelper hermesDbHelper;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mRecyclerView = (RecyclerView) findViewById(R.id.msg_recycler);
         LinearLayoutManager linearLayoutManager =
@@ -104,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
             }
         });
 
-
         hermesDbHelper = new HermesDbHelper(this);
         final SQLiteDatabase db = hermesDbHelper.getReadableDatabase();
         new MsgLoader().execute(db);
@@ -144,7 +146,6 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                             case R.id.contacts:
                                 return true;
                             case R.id.aliases:
-
                                 Intent intent = new Intent(MainActivity.this, AliasesActivity.class);
                                 startActivity(intent);
                         }
@@ -176,7 +177,6 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         }
     }
 
-
     public class MsgLoader extends AsyncTask<SQLiteDatabase, Void, Cursor> {
 
         @Override
@@ -200,12 +200,18 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
         final SQLiteDatabase db = hermesDbHelper.getReadableDatabase();
         new MsgLoader().execute(db);
+        SharedPreferences sharedPreferences = getSharedPreferences(AliasesActivity.PROFILE_DIR, AliasesActivity.MODE_PRIVATE);
+        String preferred_pic = sharedPreferences.getString(AliasesActivity.PREFERRED_PIC,null);
+
+        if(preferred_pic != null){
+            setProfileImage(preferred_pic);
+            Log.e("TEIUREOI", "ERERE");
+        }
     }
 
     @Override
@@ -221,6 +227,13 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
     }
 
+    private void setProfileImage(String name){
+        File file = new File(MainActivity.this.getFilesDir(),name+".png");
+        if(file.exists()) {
+            ImageView imageView = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.nav_profile);
+            imageView.setImageURI(Uri.fromFile(file));
+        }
+    }
     public byte[] getLastStoredPrivateKey() {
         return hermesDbHelper.getLastStoredPrivateKey();
     }

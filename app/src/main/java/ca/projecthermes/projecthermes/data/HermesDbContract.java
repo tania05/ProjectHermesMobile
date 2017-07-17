@@ -14,7 +14,9 @@ public class HermesDbContract {
     
     public static final class KeyPairEntry implements BaseColumns {
         public static final String TABLE_NAME = "KeyPairs";
+        public static final String COLUMN_NAME = "name";
         public static final String COLUMN_PUBLIC_KEY = "publicKey";
         public static final String COLUMN_PRIVATE_KEY = "privateKey";
     }
+
 }

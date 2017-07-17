@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.util.Log;
 import java.nio.charset.Charset;
 import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry;
@@ -18,6 +20,7 @@ import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.Encryption;
 import ca.projecthermes.projecthermes.util.Util;
 
+import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_NAME;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_PRIVATE_KEY;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_PUBLIC_KEY;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.COLUMN_MSG_BODY;
@@ -27,7 +30,7 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 6;
     public static final Charset CHARSET = Charset.forName("UTF-16");
 
     public static final String MESSAGE_ADDED_ACTION = "ca.projecthermes.projecthermes.broadcast.MESSAGE_ADDED";
@@ -46,7 +49,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
 
                 "CREATE TABLE " + MessageEntry.TABLE_NAME + " (" +
                         MessageEntry._ID                + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        COLUMN_MSG_ID     + " TEXT NOT NULL, " +
+                        COLUMN_MSG_ID     + " TEXT NOT NULL," +
                         COLUMN_MSG_VERIFIER    + " BLOB NOT NULL, " +
                         COLUMN_MSG_KEY    + " BLOB NOT NULL, " +
                         COLUMN_MSG_BODY   + " BLOB NOT NULL" +
@@ -56,7 +59,8 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
 
         final String SQL_CREATE_KEYPAIR_TABLE =
                 "CREATE TABLE " + KeyPairEntry.TABLE_NAME + " (" +
-                        KeyPairEntry._ID                + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        KeyPairEntry._ID    + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COLUMN_NAME         + " TEXT NOT NULL UNIQUE, " +
                         COLUMN_PUBLIC_KEY  + " BLOB NOT NULL, " +
                         COLUMN_PRIVATE_KEY + " BLOB NOT NULL" + ");";
         sqLiteDatabase.execSQL(SQL_CREATE_KEYPAIR_TABLE);
@@ -154,15 +158,22 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     }
 
 
-    public void insertKey(KeyPair keyPair) {
-        SQLiteDatabase db = this.getWritableDatabase();
+    public boolean insertKey(KeyPair keyPair, String keyName) {
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_PRIVATE_KEY, Encryption.getEncodedPrivateKey(keyPair));
-        values.put(COLUMN_PUBLIC_KEY, Encryption.getEncodedPublicKey(keyPair));
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME, keyName);
+            values.put(COLUMN_PRIVATE_KEY, Encryption.getEncodedPrivateKey(keyPair));
+            values.put(COLUMN_PUBLIC_KEY, Encryption.getEncodedPublicKey(keyPair));
 
-        long newRowId = db.insert(KeyPairEntry.TABLE_NAME, null, values);
-
+            db.insertOrThrow(KeyPairEntry.TABLE_NAME, null, values);
+            return true;
+        }
+        catch (SQLException e){
+            Log.e("Insert Key FAILED", Arrays.toString(e.getStackTrace()));
+            return false;
+        }
     }
 
     public byte[] getLastStoredPublicKey() {
