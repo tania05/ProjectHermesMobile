@@ -255,7 +255,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     @NonNull
     private Collection<Runnable> createCommonRunnables(@NotNull IPacketManager packetManager) {
         return Arrays.asList(
-                new HeartbeatResponder(new HermesLogger("HeartbeatResponder"), packetManager, new TimeManager(), 7500),
+                new HeartbeatResponder(new HermesLogger("HeartbeatResponder"), packetManager, new TimeManager(), 60000),
                 new TransmissionRequestResponder(
                         new HermesLogger("TransmissionRequestResponder"),
                         packetManager,

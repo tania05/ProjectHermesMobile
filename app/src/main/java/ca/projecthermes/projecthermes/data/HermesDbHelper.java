@@ -134,7 +134,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         cursor.moveToFirst();
 
         while(cursor.moveToNext()) {
-            byte[] msgId = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_ID));
+            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(CHARSET);
             msgIdList.add(msgId);
         }
         cursor.close();
@@ -153,6 +153,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                 COLUMN_MSG_ID + " = ?",
                 new String[] { new String(identifier, CHARSET) }
         );
+
 
 
 
