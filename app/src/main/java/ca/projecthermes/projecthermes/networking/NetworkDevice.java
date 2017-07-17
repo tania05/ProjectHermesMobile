@@ -10,6 +10,9 @@ import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import ca.projecthermes.projecthermes.exceptions.IntValueException;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
 import ca.projecthermes.projecthermes.util.IFactory;
@@ -25,6 +28,8 @@ public class NetworkDevice implements INetworkDevice {
 
     private final Source<INetworkDevice> _statusChangeSource;
     private final Source<INetworkDevice> _signalLossSource;
+
+    private Timer _timer;
 
     // Updated through the "deviceUpdateObservable"
     private WifiP2pDevice _wifiP2pDevice;
@@ -67,6 +72,10 @@ public class NetworkDevice implements INetworkDevice {
 
             if (oldStatus != newStatus) {
                 _statusChangeSource.update(this);
+
+                if (_timer != null) {
+                    _timer.cancel();
+                }
             }
         }
     }
@@ -115,6 +124,21 @@ public class NetworkDevice implements INetworkDevice {
     }
 
     @Override
+    public void cancelConnect() {
+        _wifiP2pManager.cancelConnect(_channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d("NetworkDevice", "Canceled the connection.");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d("NetworkDevice", "Failed to cancel connection.");
+            }
+        });
+    }
+
+    @Override
     public IObservable<WifiP2pInfo> requestNetworkInfo() {
         final Source<WifiP2pInfo> source = new Source<>();
         _wifiP2pManager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
@@ -145,6 +169,19 @@ public class NetworkDevice implements INetworkDevice {
     public int getStatus() {
         synchronized (this) {
             return _wifiP2pDevice.status;
+        }
+    }
+
+    @Override
+    public void scheduleDisconnect(int time) {
+        if (_timer == null) {
+            _timer = new Timer();
+            _timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    disconnect();
+                }
+            }, time);
         }
     }
 }

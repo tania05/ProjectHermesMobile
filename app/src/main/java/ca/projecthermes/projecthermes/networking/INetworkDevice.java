@@ -17,10 +17,13 @@ public interface INetworkDevice {
 
     void connect();
     void disconnect();
+    void cancelConnect();
 
     IObservable<WifiP2pInfo> requestNetworkInfo();
 
     String getName();
     String getDeviceAddress();
     int getStatus();
+
+    void scheduleDisconnect(int time);
 }
