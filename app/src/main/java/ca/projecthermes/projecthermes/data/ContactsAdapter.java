@@ -2,7 +2,6 @@ package ca.projecthermes.projecthermes.data;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -14,49 +13,46 @@ import android.widget.TextView;
 import ca.projecthermes.projecthermes.R;
 
 /**
- * Created by Tanjulia on 7/16/2017.
+ * Created by Tanjulia on 7/17/2017.
  */
 
-public class AliasAdapter extends RecyclerView.Adapter<AliasAdapter.AliasAdapterViewHolder> {
+public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder> {
     private final Context mContext;
-    private final AliasAdapter.AliasAdapterOnClickHandler mClickHandler;
+    private final ContactsAdapterOnClickHandler mClickHandler;
     private Cursor mCursor;
 
-    public interface  AliasAdapterOnClickHandler{
-        void onClick(String name);
+    public interface ContactsAdapterOnClickHandler{
+        void onclick(String contactName);
     }
-
-    public AliasAdapter(@NonNull Context context, AliasAdapterOnClickHandler clickHandler){
+    public ContactsAdapter(Context context, ContactsAdapterOnClickHandler viewHandler){
         mContext = context;
-        mClickHandler = clickHandler;
-
+        mClickHandler = viewHandler;
     }
 
     @Override
-    public AliasAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ContactsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(mContext);
 
-        View view = inflater.inflate(R.layout.list_alias_item, parent, false);
-
-        return new AliasAdapter.AliasAdapterViewHolder(view);
+        View view = inflater.inflate(R.layout.list_contact_items, parent, false);
+        return new ContactsAdapter.ContactsViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(AliasAdapter.AliasAdapterViewHolder holder, int position) {
+    public void onBindViewHolder(ContactsViewHolder holder, int position) {
         final int pos = position;
         mCursor.moveToPosition(position);
         final String name = mCursor.getString(0);
-        holder.mAliasTextView.setText(name);
+        holder.mContactsTextView.setText(name);
 
-        holder.mAliasTextView.setOnClickListener(new View.OnClickListener() {
+        holder.mContactsTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mClickHandler.onClick(name);
+                mClickHandler.onclick(name);
             }
         });
 
         DisplayMetrics metrics = holder.mCardView.getResources().getDisplayMetrics();
-        int margin_bottom = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, metrics);
+        int margin_bottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, metrics);
         int margin_top = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, metrics);
 
         if (position == getItemCount() - 1) {
@@ -79,16 +75,17 @@ public class AliasAdapter extends RecyclerView.Adapter<AliasAdapter.AliasAdapter
         return mCursor.getCount();
     }
 
-    public class AliasAdapterViewHolder extends RecyclerView.ViewHolder {
-        public final TextView mAliasTextView;
+    public class ContactsViewHolder extends RecyclerView.ViewHolder {
+        public final TextView mContactsTextView;
         public View mCardView;
 
-        public AliasAdapterViewHolder(View v){
+        public ContactsViewHolder(View v){
             super(v);
-            mCardView = v.findViewById(R.id.cardView);
-            mAliasTextView = (TextView) v.findViewById(R.id.alias_item_body);
+            mCardView = v.findViewById(R.id.contactCardView);
+            mContactsTextView = (TextView) v.findViewById(R.id.contacts_item_body);
         }
     }
+
     public void swapCursor(Cursor c) {
         mCursor = c;
     }

@@ -52,7 +52,7 @@ public class AliasesActivity extends AppCompatActivity {
             }
         });
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.msg_recycler);
+        mRecyclerView = (RecyclerView) findViewById(R.id.alias_recycler);
         LinearLayoutManager linearLayoutManager =
                 new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setAdapter(aliasAdapter);

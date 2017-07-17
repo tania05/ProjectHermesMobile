@@ -46,7 +46,7 @@
         </android.support.v7.widget.CardView>
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/msg_recycler"
+            android:id="@+id/alias_recycler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
