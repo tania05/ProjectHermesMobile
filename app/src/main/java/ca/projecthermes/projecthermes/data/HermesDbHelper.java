@@ -265,8 +265,6 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     public byte[] getReciepientKey(String contactName){
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(ContactKeysEntry.TABLE_NAME, new String [] {ContactKeysEntry.COLUMN_CONTACT_PUBLIC_KEY}, COLUMN_CONTACT_NAME + " = ?",new String[]{contactName}, null, null, null);
-//        Cursor cursor = db.rawQuery("SELECT " + COLUMN_PUBLIC_KEY + " FROM " + ContactKeysEntry.TABLE_NAME + " WHERE " +
-//                        COLUMN_CONTACT_NAME + " = ?", new String []{contactName});
 
         if(cursor.moveToFirst()){
             byte [] publicKey = cursor.getBlob(cursor.getColumnIndex(COLUMN_CONTACT_PUBLIC_KEY));

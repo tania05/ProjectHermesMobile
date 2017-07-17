@@ -24,7 +24,7 @@ public class MessageDetail extends AppCompatActivity {
         TextView msgView = (TextView) findViewById(R.id.msgIdView);
         msgView.setText(getIntent().getStringExtra("msgId"));
 
-        TextView alias = (TextView) findViewById(R.id.msgAliasView);
+        TextView alias = (TextView) findViewById(R.id.recieved_alias_content);
         alias.setText(getIntent().getStringExtra("alias"));
 
         TextView msgBodyView = (TextView) findViewById(R.id.msgBodyView);

@@ -27,18 +27,27 @@
             android:textSize="18sp"/>
 
         <TextView
-            android:id="@+id/msgAliasView"
+            android:id="@+id/msgBodyView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
             android:textSize="18sp"/>
 
         <TextView
-            android:id="@+id/msgBodyView"
+            android:id="@+id/received_alias"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Received Alias:"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/recieved_alias_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
+
     </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>
