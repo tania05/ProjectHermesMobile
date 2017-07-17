@@ -17,6 +17,7 @@ import java.util.Arrays;
 import ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.ContactKeysEntry;
+import ca.projecthermes.projecthermes.data.HermesDbContract.DecodedEntry;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.Encryption;
 import ca.projecthermes.projecthermes.util.Util;
@@ -33,7 +34,7 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 10;
     public static final Charset CHARSET = Charset.forName("UTF-16");
 
     public static final String MESSAGE_ADDED_ACTION = "ca.projecthermes.projecthermes.broadcast.MESSAGE_ADDED";
@@ -76,6 +77,14 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                         COLUMN_CONTACT_NAME         + " TEXT NOT NULL UNIQUE, " +
                         COLUMN_CONTACT_PUBLIC_KEY + " BLOB NOT NULL" + ");";
         sqLiteDatabase.execSQL(SQL_CREATE_CONTACTS_TABLE);
+
+        final String SQL_CREATE_DECODED_TABLE =
+                "CREATE TABLE " + DecodedEntry.TABLE_NAME + " (" +
+                        DecodedEntry._ID        + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        DecodedEntry.COLUMN_MSG_ID + " TEXT NOT NULL UNIQUE, " +
+                        DecodedEntry.COLUMN_MSG_BODY + " BLOB NOT NULL, " +
+                        DecodedEntry.COLUMN_DECODING_ALIAS + " TEXT NOT NULL" + ");";
+        sqLiteDatabase.execSQL(SQL_CREATE_DECODED_TABLE);
     }
 
     @Override
@@ -83,6 +92,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MessageEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + KeyPairEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ContactKeysEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + DecodedEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 
@@ -117,11 +127,53 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
             long newRowId = db.insert(MessageEntry.TABLE_NAME, null, values);
             Log.d("HermesDbHelper", "Db Row " + newRowId);
 
-            Intent broadcast = new Intent();
-            broadcast.setAction(MESSAGE_ADDED_ACTION);
-            broadcast.putExtra(EXTRA_MESSAGE_IDENTIFIER, m.identifier);
-            _context.sendBroadcast(broadcast);
+            onEncryptedStored(m, db);
         }
+    }
+
+    private void onEncryptedStored(Message m, SQLiteDatabase db) {
+        Intent broadcast = new Intent();
+        broadcast.setAction(MESSAGE_ADDED_ACTION);
+        broadcast.putExtra(EXTRA_MESSAGE_IDENTIFIER, m.identifier);
+        _context.sendBroadcast(broadcast);
+
+        Cursor cursor = db.query(
+                KeyPairEntry.TABLE_NAME,
+                new String[] { KeyPairEntry.COLUMN_NAME, KeyPairEntry.COLUMN_PRIVATE_KEY},
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        if (cursor.moveToFirst()) {
+            do {
+                byte[] privateKey = cursor.getBlob(cursor.getColumnIndex(KeyPairEntry.COLUMN_PRIVATE_KEY));
+
+                byte[] decryptedVerifier = Encryption.decryptString(m.verifier, privateKey);
+                if (Arrays.equals(decryptedVerifier, Message.VALID_VERIFIER)) {
+                    // we can decrypt.
+                    byte[] decryptedAesKey = Encryption.decryptString(m.key, privateKey);
+                    byte[] decryptedMessage = Encryption.decryptUnderAes(decryptedAesKey, m.body);
+                    String decryptingAlias = cursor.getString(cursor.getColumnIndex(KeyPairEntry.COLUMN_NAME));
+
+                    Log.d("hermesdb", "Successfully decrypted identifier " + new String(m.identifier, CHARSET) + " with alias " + decryptingAlias);
+
+                    storeDecryptedMessage(m.identifier, decryptedMessage, decryptingAlias, db);
+                    break;
+                }
+            } while (cursor.moveToNext());
+        }
+    }
+
+    private void storeDecryptedMessage(byte[] identifier, byte[] decryptedMessage, String name, SQLiteDatabase db) {
+        ContentValues values = new ContentValues();
+        values.put(DecodedEntry.COLUMN_DECODING_ALIAS, name);
+        values.put(DecodedEntry.COLUMN_MSG_ID, new String(identifier, CHARSET));
+        values.put(DecodedEntry.COLUMN_MSG_BODY, decryptedMessage);
+        long newRowId = db.insert(DecodedEntry.TABLE_NAME, null, values);
+        Log.e("hermesdb", "Stored decrypted message row " + newRowId);
     }
 
     @Override

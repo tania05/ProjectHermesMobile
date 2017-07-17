@@ -54,35 +54,23 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
         final int pos = position;
         Log.d(TAG, "pos: " + position);
 
-        //TODO: Use all stored private key instead of only last one
-        byte[] verifier = mCursor.getBlob(1);
-        final byte[] verifierBytes = Encryption.decryptString(verifier, mClickHandler.getLastStoredPrivateKey());
-        final String verifierString = (verifierBytes == null) ? "" : new String(verifierBytes, HermesDbHelper.CHARSET);
-        Log.d(TAG, "verifier String: " + verifierString);
-        if (Arrays.equals(verifierBytes,(Message.VALID_VERIFIER))) {
+        final String id = mCursor.getString(0);
+        final String decodingAlias = mCursor.getString(1);
+        final byte[] msgBlob = mCursor.getBlob(2);
 
-            byte[] encryptedKeyBlob = mCursor.getBlob(2);
-            byte[] encryptedMessageBlob = mCursor.getBlob(3);
-            byte[] keyBlob = Encryption.decryptString(encryptedKeyBlob, mClickHandler.getLastStoredPrivateKey());
-            byte[] msgBlob = Encryption.decryptUnderAes(keyBlob, encryptedMessageBlob);
+        final String msg = new String(msgBlob, HermesDbHelper.CHARSET);
+        msgAdapterViewHolder.mMsgTextView.setText(msg);
 
-            final String msg = new String(msgBlob, HermesDbHelper.CHARSET);
-            msgAdapterViewHolder.mMsgTextView.setText(msg);
-
-            msgAdapterViewHolder.mMsgTextView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(mContext, MessageDetail.class);
-                    String msgId = mCursor.getString(0);
-                    intent.putExtra("msgId", msgId);
-                    intent.putExtra("verifier", verifierString);
-                    intent.putExtra("msg", msg);
-                    mContext.startActivity(intent);
-                }
-            });
-        } else {
-            msgAdapterViewHolder.mMsgTextView.setVisibility(View.GONE);
-        }
+        msgAdapterViewHolder.mMsgTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mContext, MessageDetail.class);
+                intent.putExtra("msgId", id);
+                intent.putExtra("alias", decodingAlias);
+                intent.putExtra("msg", msg);
+                mContext.startActivity(intent);
+            }
+        });
     }
 
     @Override
