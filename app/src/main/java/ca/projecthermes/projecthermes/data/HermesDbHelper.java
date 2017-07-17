@@ -16,10 +16,13 @@ import java.util.Arrays;
 
 import ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry;
+import ca.projecthermes.projecthermes.data.HermesDbContract.ContactKeysEntry;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.Encryption;
 import ca.projecthermes.projecthermes.util.Util;
 
+import static ca.projecthermes.projecthermes.data.HermesDbContract.ContactKeysEntry.COLUMN_CONTACT_NAME;
+import static ca.projecthermes.projecthermes.data.HermesDbContract.ContactKeysEntry.COLUMN_CONTACT_PUBLIC_KEY;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_NAME;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_PRIVATE_KEY;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.COLUMN_PUBLIC_KEY;
@@ -30,7 +33,7 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 8;
     public static final Charset CHARSET = Charset.forName("UTF-16");
 
     public static final String MESSAGE_ADDED_ACTION = "ca.projecthermes.projecthermes.broadcast.MESSAGE_ADDED";
@@ -64,12 +67,22 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                         COLUMN_PUBLIC_KEY  + " BLOB NOT NULL, " +
                         COLUMN_PRIVATE_KEY + " BLOB NOT NULL" + ");";
         sqLiteDatabase.execSQL(SQL_CREATE_KEYPAIR_TABLE);
+
+
+
+        final String SQL_CREATE_CONTACTS_TABLE =
+                "CREATE TABLE " + ContactKeysEntry.TABLE_NAME + " (" +
+                        ContactKeysEntry._ID    + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COLUMN_CONTACT_NAME         + " TEXT NOT NULL UNIQUE, " +
+                        COLUMN_CONTACT_PUBLIC_KEY + " BLOB NOT NULL" + ");";
+        sqLiteDatabase.execSQL(SQL_CREATE_CONTACTS_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MessageEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + KeyPairEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ContactKeysEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 
@@ -174,6 +187,37 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
             Log.e("Insert Key FAILED", Arrays.toString(e.getStackTrace()));
             return false;
         }
+    }
+
+    public boolean insertContact(String key, String keyName){
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_CONTACT_NAME, keyName);
+            values.put(COLUMN_CONTACT_PUBLIC_KEY, key);
+
+            db.insertOrThrow(ContactKeysEntry.TABLE_NAME, null, values);
+            return true;
+        }
+        catch (SQLException e){
+            Log.e("Insert Key FAILED", Arrays.toString(e.getStackTrace()));
+            return false;
+        }
+    }
+
+    public byte[] getReciepientKey(String contactName){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_PUBLIC_KEY + " FROM " + ContactKeysEntry.TABLE_NAME + " WHERE " +
+                        COLUMN_CONTACT_NAME + " = ?", new String []{contactName});
+        
+        if(cursor.moveToFirst()){
+            byte [] publicKey = cursor.getBlob(cursor.getColumnIndex(COLUMN_CONTACT_PUBLIC_KEY));
+            cursor.close();
+            return publicKey;
+        }
+        return null;
     }
 
     public byte[] getLastStoredPublicKey() {

@@ -19,4 +19,9 @@ public class HermesDbContract {
         public static final String COLUMN_PRIVATE_KEY = "privateKey";
     }
 
+    public static final class ContactKeysEntry implements BaseColumns{
+        public static final String TABLE_NAME = "ContactKeys";
+        public static final String COLUMN_CONTACT_NAME = "name";
+        public static final String COLUMN_CONTACT_PUBLIC_KEY = "publicKey";
+    }
 }

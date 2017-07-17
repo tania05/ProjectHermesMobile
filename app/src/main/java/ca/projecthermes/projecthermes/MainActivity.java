@@ -28,9 +28,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -39,6 +41,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.io.File;
+import java.security.Key;
 import java.security.KeyPair;
 
 import ca.projecthermes.projecthermes.data.HermesDbContract;
@@ -144,10 +147,13 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                             case R.id.settings:
                                 return true;
                             case R.id.contacts:
+                                Intent contactsIntent = new Intent(MainActivity.this, ContactsActivity.class);
+                                startActivity(contactsIntent);
                                 return true;
                             case R.id.aliases:
                                 Intent intent = new Intent(MainActivity.this, AliasesActivity.class);
                                 startActivity(intent);
+                                return true;
                         }
                         return true;
                     }
@@ -170,7 +176,24 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            Toast.makeText(MainActivity.this, result.getContents(), Toast.LENGTH_LONG).show();
+
+                            AlertDialog.Builder contactNameBuilder = new AlertDialog.Builder(MainActivity.this);
+                            LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+
+                            final View inflate = inflater.inflate(R.layout.dialog_add_alias, null);
+                            final EditText text = (EditText) inflate.findViewById(R.id.edit_alias_name);
+
+                            contactNameBuilder.setView(inflate)
+                                    .setTitle("Contact Name")
+                                    .setPositiveButton("Save", new DialogInterface.OnClickListener(){
+
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            String contactName = text.getText().toString();
+                                            if(hermesDbHelper.insertContact(result.getContents(), contactName))
+                                                Toast.makeText(MainActivity.this, contactName+ " has been added to the contact.", Toast.LENGTH_LONG).show();
+                                        }
+                                    }).setNegativeButton(android.R.string.cancel, null).show();
                         }
                     })
                     .setNegativeButton(android.R.string.no, null).show();
