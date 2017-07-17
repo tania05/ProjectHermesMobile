@@ -75,6 +75,7 @@ public class NetworkDevice implements INetworkDevice {
 
                 if (_timer != null) {
                     _timer.cancel();
+                    _timer = null;
                 }
             }
         }
@@ -176,10 +177,12 @@ public class NetworkDevice implements INetworkDevice {
     public void scheduleDisconnect(int time) {
         if (_timer == null) {
             _timer = new Timer();
+            Log.d("NetworkDevice", "Scheduling disconnect in " + time);
             _timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     disconnect();
+                    _timer = null;
                 }
             }, time);
         }

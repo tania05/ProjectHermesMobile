@@ -101,7 +101,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 }
 
                 if (deviceStatus == WifiP2pDevice.INVITED) {
-                    device.scheduleDisconnect(5000);
+                    device.scheduleDisconnect(15000);
                 }
 
                 if (attemptedConnection[0]) return;
