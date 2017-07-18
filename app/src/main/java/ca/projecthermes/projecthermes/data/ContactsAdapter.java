@@ -23,6 +23,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
 
     public interface ContactsAdapterOnClickHandler{
         void onclick(String contactName);
+        void onLongClick(String contactName);
     }
     public ContactsAdapter(Context context, ContactsAdapterOnClickHandler viewHandler){
         mContext = context;
@@ -48,6 +49,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
             @Override
             public void onClick(View v) {
                 mClickHandler.onclick(name);
+            }
+        });
+
+        holder.mContactsTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mClickHandler.onLongClick(name);
+                return true;
             }
         });
 

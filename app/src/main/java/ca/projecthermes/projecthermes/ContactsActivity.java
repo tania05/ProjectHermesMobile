@@ -1,10 +1,12 @@
 package ca.projecthermes.projecthermes;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,6 +40,22 @@ public class ContactsActivity extends AppCompatActivity {
                 intent.putExtra(SendMessageActivity.RECIEPEINT_ADDR, recipientKey);
                 startActivity(intent);
                 Toast.makeText(ContactsActivity.this, recipientKey.toString(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onLongClick(final String contactName) {
+                new AlertDialog.Builder(ContactsActivity.this)
+                        .setTitle("Delete?")
+                        .setMessage("Are you sure you want to delete the contact " + contactName + "?")
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                hermesDbHelper.deleteContact(contactName);
+                                new ContactsLoader().execute(hermesDbHelper.getReadableDatabase());
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
             }
         });
 
