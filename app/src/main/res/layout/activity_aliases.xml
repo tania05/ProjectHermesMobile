@@ -64,7 +64,7 @@
         android:layout_marginBottom="@dimen/md_keylines"
         android:layout_marginRight="@dimen/md_keylines"
         android:clickable="true"
-        app:backgroundTint="@color/colorPrimary"
+        app:backgroundTint="@color/colorAccent"
         app:layout_anchor="@+id/linearLayout"
         app:layout_anchorGravity="bottom|right"
         app:srcCompat="@drawable/ic_add_black_24dp" />

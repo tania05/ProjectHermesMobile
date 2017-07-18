@@ -63,7 +63,11 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
         final byte[] msgBlob = mCursor.getBlob(2);
 
         final String msg = new String(msgBlob, HermesDbHelper.CHARSET);
-        msgAdapterViewHolder.mMsgTextView.setText(msg);
+        String displayedMsg = msg.replaceAll("\\n", " ");
+        if (msg.length() > 50) {
+            displayedMsg = msg.substring(0, 47).trim() + "...";
+        }
+        msgAdapterViewHolder.mMsgTextView.setText(displayedMsg);
 
         msgAdapterViewHolder.mMsgTextView.setOnClickListener(new View.OnClickListener() {
             @Override
