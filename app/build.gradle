@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 repositories {
     jcenter()
+    maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local" }
 }
 
 android {
@@ -46,4 +47,8 @@ dependencies {
     compile 'com.google.zxing:javase:3.3.0'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:2.8.9'
+
+    compile 'io.ethmobile:ethdroid:2.0.0-m3-SNAPSHOT'
+    compile 'org.ethereum:geth:1.6.5'
+
 }

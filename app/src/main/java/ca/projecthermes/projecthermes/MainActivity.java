@@ -1,8 +1,5 @@
 package ca.projecthermes.projecthermes;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,26 +27,29 @@ import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import java.io.File;
-import java.security.Key;
-import java.security.KeyPair;
+import org.ethereum.geth.Account;
+import org.ethereum.geth.BigInt;
 
+import java.io.File;
+import java.lang.reflect.Method;
+
+import ca.projecthermes.projecthermes.Ethereum.SmartContract;
 import ca.projecthermes.projecthermes.data.HermesDbContract;
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.data.MsgAdapter;
-import ca.projecthermes.projecthermes.services.WiFiPeerDiscoverService;
-import ca.projecthermes.projecthermes.util.Encryption;
+import io.ethmobile.ethdroid.EthDroid;
+import io.ethmobile.ethdroid.KeyManager;
+import io.ethmobile.ethdroid.solidity.element.function.SolidityFunction;
+import io.ethmobile.ethdroid.solidity.types.SBytes;
 
 
 public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAdapterOnClickHandler {
@@ -61,6 +61,12 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
     private DrawerLayout mDrawerLayout;
     public HermesDbHelper hermesDbHelper;
     private NavigationView navigationView;
+
+
+    private static EthDroid eth;
+    private KeyManager keyManager;
+    private Account account;
+    private SmartContract contract;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -97,10 +103,10 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
             Log.e("Toolbar", "Toolbar not found");
         }
 
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 15000, pendingIntent);
+//        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//        Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 15000, pendingIntent);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -123,9 +129,9 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                     @Override
                     public void onRefresh() {
                         Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
-                        Intent wifiIntent = new Intent(getApplicationContext(),
-                                                        WiFiPeerDiscoverService.class);
-                        startService(wifiIntent);
+//                        Intent wifiIntent = new Intent(getApplicationContext(),
+//                                                        WiFiPeerDiscoverService.class);
+//                        startService(wifiIntent);
 
                         new MsgLoader().execute(db);
                     }
@@ -161,6 +167,8 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                 }
 
         );
+
+        ethTest();
     }
 
     @Override
@@ -211,6 +219,13 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                             HermesDbContract.DecodedEntry.COLUMN_DECODING_ALIAS,
                             HermesDbContract.DecodedEntry.COLUMN_MSG_BODY},
                     null, null, null, null, null);
+            try {
+                if (!eth.isSyncing() && !eth.isSynced()) {
+                   eth.start();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return cursor;
         }
 
@@ -219,6 +234,40 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
             mSwipeRefreshLayout.setRefreshing(false);
             mMsgAdapter.swapCursor(cursor);
             mMsgAdapter.notifyDataSetChanged();
+
+            try {
+                if (contract == null) {
+                    contract = eth.getContractInstance(SmartContract.class, "0xc5b2E44A346e1E6022F68F9fbf6Afe635E7b6cc7");
+                }
+
+                keyManager.unlockAccount(account, "password");
+//                contract.newMessage(SUInt.SUInt16.fromInteger(12),
+//                        SUInt.SUInt32.fromLong(12),
+//                        SUInt.SUInt32.fromLong(12)).send();
+
+                SBytes sb = SBytes.fromByteArray(new Byte[]{1,5,8,3,1,2,5,8,3,1,2,5,8,3,1,2});
+                SBytes nonce = SBytes.fromByteArray(new Byte[]{1,5,8,3,1,2,5,8,3,1,2,5,8,3,1,2,1,5,8,3,1,2,5,8,3,1,2,5,8,3,1,2});
+
+                SolidityFunction solidityFunction = contract.newMessage(sb,nonce, nonce);
+
+                Method method = solidityFunction.getClass().getDeclaredMethod("encode");
+                method.setAccessible(true);
+                String encodedData = (String) method.invoke(solidityFunction);
+                Log.e(TAG, encodedData);
+
+
+                eth.newTransaction()
+                        .to("0xc5b2E44A346e1E6022F68F9fbf6Afe635E7b6cc7")
+                        .gasAmount(new BigInt(200000))
+                        .value((long) 1e17)
+                        .data(encodedData)
+                        .send();
+
+                Toast.makeText(MainActivity.this, "Balance: " + eth.getBalance().inEther(), Toast.LENGTH_SHORT).show();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }
@@ -261,4 +310,36 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         return hermesDbHelper.getLastStoredPrivateKey();
     }
 
+
+    //XXX
+    public void ethTest() {
+
+        try {
+            String datadir = getFilesDir().getAbsolutePath();
+
+//            deleteDirIfExists(new File(datadir + "/GethDroid"));
+//            deleteDirIfExists(new File(datadir + "/keystore"));
+
+            keyManager = KeyManager.newKeyManager(datadir);
+//            account = keyManager.newUnlockedAccount("password");
+            account = keyManager.getAccounts().get(0);
+
+
+            eth = new EthDroid.Builder(datadir)
+                    .onRinkeby()
+                    .withKeyManager(keyManager)
+                    .build();
+
+            eth.setMainAccountAtIndex(0);
+            eth.start();
+
+            Log.e(TAG, "Address: " + account.getAddress().getHex());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG, "ETH START Failed");
+        }
+
+
+    }
 }
