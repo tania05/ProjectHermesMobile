@@ -37,7 +37,7 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 11;
     public static final Charset CHARSET = Charset.forName("UTF-16");
 
     public static final String MESSAGE_ADDED_ACTION = "ca.projecthermes.projecthermes.broadcast.MESSAGE_ADDED";
@@ -305,4 +305,10 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     }
 
 
+    public void deleteDecodedMsg(String msgId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        if(db.delete(DecodedEntry.TABLE_NAME, DecodedEntry.COLUMN_MSG_ID + " = ?", new String[] {msgId}) != 0){
+            Log.e("Deleted:::", "SUCCESS");
+        }
+    }
 }

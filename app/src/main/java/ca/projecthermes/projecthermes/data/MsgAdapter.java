@@ -3,7 +3,9 @@ package ca.projecthermes.projecthermes.data;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +15,7 @@ import android.widget.TextView;
 
 import java.util.Arrays;
 
+import ca.projecthermes.projecthermes.MainActivity;
 import ca.projecthermes.projecthermes.MessageDetail;
 import ca.projecthermes.projecthermes.R;
 import ca.projecthermes.projecthermes.networking.payload.Message;
@@ -31,6 +34,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
     public interface MsgAdapterOnClickHandler {
         void onClick(long msgId);
         byte[] getLastStoredPrivateKey();
+        void onLongClick(String msgId);
     }
 
     public MsgAdapter(@NonNull Context context, MsgAdapterOnClickHandler clickHandler) {
@@ -69,6 +73,14 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
                 intent.putExtra("alias", decodingAlias);
                 intent.putExtra("msg", msg);
                 mContext.startActivity(intent);
+            }
+        });
+        msgAdapterViewHolder.mMsgTextView.setOnLongClickListener( new View.OnLongClickListener(){
+
+            @Override
+            public boolean onLongClick(View v) {
+                mClickHandler.onLongClick(id);
+                return true;
             }
         });
     }

@@ -160,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                         return true;
                     }
                 }
-
         );
     }
 
@@ -249,6 +248,20 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
     public void onClick(long msgId) {
 
+    }
+
+    public void onLongClick(final String msgId){
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Are you sure you want to delete the message?")
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener(){
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final MsgLoader loader = new MsgLoader();
+                        hermesDbHelper.deleteDecodedMsg(msgId);
+                        loader.execute(hermesDbHelper.getReadableDatabase());
+                    }
+                }).setNegativeButton(android.R.string.no, null).show();
     }
 
     private void setProfileImage(String name){
