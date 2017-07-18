@@ -6,20 +6,19 @@ android:layout_width="match_parent"
 android:layout_height="match_parent"
 tools:context="ca.projecthermes.projecthermes.ContactsActivity">
 
-<android.support.design.widget.AppBarLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:theme="@style/AppTheme.AppBarOverlay">
-
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
+    <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:title="Contacts"
-        app:popupTheme="@style/AppTheme.PopupOverlay" />
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
 
-</android.support.design.widget.AppBarLayout>
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/primary"
+            app:title="Contacts" />
+
+    </android.support.design.widget.AppBarLayout>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -36,8 +35,7 @@ tools:context="ca.projecthermes.projecthermes.ContactsActivity">
         android:layout_height="wrap_content"
         android:clipToPadding="false"
         android:elevation="3dp"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp">
+        android:paddingBottom="10dp">
 
     </android.support.v7.widget.RecyclerView>
 

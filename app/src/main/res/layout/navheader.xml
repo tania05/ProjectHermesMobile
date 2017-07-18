@@ -18,7 +18,7 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/navheader_height"
     android:layout_marginTop="16dp"
-    android:background="?attr/colorPrimaryDark"
+    android:background="@color/primary"
     android:orientation="vertical"
     android:padding="@dimen/md_keylines">
 
@@ -26,5 +26,6 @@
         android:id="@+id/nav_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/primary"
         app:srcCompat="@drawable/anonymous" />
 </LinearLayout>

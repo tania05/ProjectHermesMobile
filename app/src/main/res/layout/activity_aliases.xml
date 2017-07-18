@@ -15,9 +15,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:title="Manage Aliases"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            android:background="@color/primary"
+            app:title="Manage Aliases" />
 
     </android.support.design.widget.AppBarLayout>
 
@@ -34,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="250dp"
             app:cardCornerRadius="4dp"
-            app:cardElevation="5dp">
+            app:cardElevation="4dp">
 
             <ImageView
                 android:id="@+id/alias_profile"
@@ -48,9 +47,8 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/alias_recycler"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:elevation="3dp"
             android:paddingBottom="10dp"
             android:paddingTop="10dp">
 

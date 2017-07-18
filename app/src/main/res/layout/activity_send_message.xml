@@ -15,9 +15,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:title="Send Message"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            android:background="@color/primary"
+            app:title="Send Message" />
 
     </android.support.design.widget.AppBarLayout>
 
