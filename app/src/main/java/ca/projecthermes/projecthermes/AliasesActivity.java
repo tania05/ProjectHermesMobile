@@ -62,6 +62,11 @@ public class AliasesActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 hermesDbHelper.deleteAlias(name);
                                 new AliasLoader().execute(hermesDbHelper.getReadableDatabase());
+
+                                File file = new File(AliasesActivity.this.getFilesDir(), name + ".png");
+                                //noinspection ResultOfMethodCallIgnored
+                                file.delete();
+                                setProfileImage(sharedProfilePic.getString(PREFERRED_PIC, null));
                             }
                         })
                         .setNegativeButton(android.R.string.cancel, null)
@@ -143,9 +148,11 @@ public class AliasesActivity extends AppCompatActivity {
 
     private void setProfileImage(String name){
         File file = new File(AliasesActivity.this.getFilesDir(),name+".png");
+        ImageView imageView = (ImageView) findViewById(R.id.alias_profile);
         if(file.exists()) {
-            ImageView imageView = (ImageView) findViewById(R.id.alias_profile);
             imageView.setImageURI(Uri.fromFile(file));
+        } else {
+            imageView.setImageResource(R.drawable.anonymous);
         }
     }
     @Override
