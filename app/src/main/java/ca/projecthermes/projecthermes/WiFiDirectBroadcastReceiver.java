@@ -17,6 +17,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.exceptions.InvokerFailException;
@@ -97,6 +99,11 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                     attemptedConnection[0] = false;
                     device.connect();
                 }
+
+                if (deviceStatus == WifiP2pDevice.INVITED) {
+                    device.scheduleDisconnect(15000);
+                }
+
                 if (attemptedConnection[0]) return;
 
                 if (deviceStatus == WifiP2pDevice.CONNECTED) {
