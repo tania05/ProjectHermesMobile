@@ -7,19 +7,23 @@
 
     <TextView
         android:id="@+id/msg_item_body"
-        android:layout_width="368dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginRight="8dp"
+        android:background="?attr/selectableItemBackground"
         android:clickable="true"
+        android:paddingBottom="18dp"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingStart="@dimen/activity_vertical_margin"
+        android:paddingTop="18dp"
         android:textSize="16sp"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintTop_creator="1"
-        android:paddingTop="18dp"
-        android:paddingBottom="18dp"
-        android:background="?attr/selectableItemBackground"
-        tools:text="Hello World" />
+        tools:text="Hello World!"
+        android:layout_marginTop="0dp"
+        app:layout_constraintHorizontal_bias="0.0" />
 
 </android.support.constraint.ConstraintLayout>
