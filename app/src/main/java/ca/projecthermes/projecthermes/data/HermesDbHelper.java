@@ -305,4 +305,8 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     }
 
 
+    public void deleteAlias(String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int deletedRows = db.delete(KeyPairEntry.TABLE_NAME, "name = ?", new String[] { name });
+    }
 }

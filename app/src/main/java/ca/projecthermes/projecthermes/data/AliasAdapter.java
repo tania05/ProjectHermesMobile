@@ -24,6 +24,7 @@ public class AliasAdapter extends RecyclerView.Adapter<AliasAdapter.AliasAdapter
 
     public interface  AliasAdapterOnClickHandler{
         void onClick(String name);
+        void onLongClick(String name);
     }
 
     public AliasAdapter(@NonNull Context context, AliasAdapterOnClickHandler clickHandler){
@@ -52,6 +53,14 @@ public class AliasAdapter extends RecyclerView.Adapter<AliasAdapter.AliasAdapter
             @Override
             public void onClick(View v) {
                 mClickHandler.onClick(name);
+            }
+        });
+
+        holder.mAliasTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mClickHandler.onLongClick(name);
+                return true;
             }
         });
 
