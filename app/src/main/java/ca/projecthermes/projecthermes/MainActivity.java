@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         switch(item.getItemId()){
                             case R.id.inbox:
+                                mDrawerLayout.closeDrawers();
                                 return true;
                             case R.id.outbox:
                                 return true;

@@ -176,6 +176,8 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         Log.e("hermesdb", "Stored decrypted message row " + newRowId);
     }
 
+
+
     @Override
     public ArrayList<byte[]> getStoredMessageIdentifiers() {
         SQLiteDatabase db = this.getReadableDatabase();
