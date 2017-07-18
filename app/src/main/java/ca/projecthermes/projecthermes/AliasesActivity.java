@@ -16,6 +16,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -49,6 +50,27 @@ public class AliasesActivity extends AppCompatActivity {
                 setProfileImage(name);
                 Toast.makeText(AliasesActivity.this, name, Toast.LENGTH_SHORT).show();
                 sharedProfilePic.edit().putString(PREFERRED_PIC ,name).apply();
+            }
+
+            @Override
+            public void onLongClick(final String name) {
+                new AlertDialog.Builder(AliasesActivity.this)
+                        .setTitle("Delete?")
+                        .setMessage("Are you sure you want to delete the alias " + name + "?")
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                hermesDbHelper.deleteAlias(name);
+                                new AliasLoader().execute(hermesDbHelper.getReadableDatabase());
+
+                                File file = new File(AliasesActivity.this.getFilesDir(), name + ".png");
+                                //noinspection ResultOfMethodCallIgnored
+                                file.delete();
+                                setProfileImage(sharedProfilePic.getString(PREFERRED_PIC, null));
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
             }
         });
 
@@ -126,9 +148,11 @@ public class AliasesActivity extends AppCompatActivity {
 
     private void setProfileImage(String name){
         File file = new File(AliasesActivity.this.getFilesDir(),name+".png");
+        ImageView imageView = (ImageView) findViewById(R.id.alias_profile);
         if(file.exists()) {
-            ImageView imageView = (ImageView) findViewById(R.id.alias_profile);
             imageView.setImageURI(Uri.fromFile(file));
+        } else {
+            imageView.setImageResource(R.drawable.anonymous);
         }
     }
     @Override

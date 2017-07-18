@@ -266,9 +266,11 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
 
     private void setProfileImage(String name){
         File file = new File(MainActivity.this.getFilesDir(),name+".png");
+        ImageView imageView = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.nav_profile);
         if(file.exists()) {
-            ImageView imageView = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.nav_profile);
             imageView.setImageURI(Uri.fromFile(file));
+        } else {
+            imageView.setImageResource(R.drawable.anonymous);
         }
     }
     public byte[] getLastStoredPrivateKey() {

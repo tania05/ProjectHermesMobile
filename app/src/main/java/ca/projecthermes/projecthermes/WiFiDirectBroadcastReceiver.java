@@ -144,7 +144,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
                         //Temporary block
                         try {
-                            Util.sleepRetryInvoker(5000, 30, new Util.IInvokerCallback() {
+                            Util.sleepRetryInvoker(5000, 999999, new Util.IInvokerCallback() {
                                 @Override
                                 public void call() throws Exception {
                                     _logger.d("Attempting to open client socket");

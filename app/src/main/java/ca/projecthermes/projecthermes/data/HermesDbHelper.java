@@ -7,9 +7,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQuery;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import java.nio.charset.Charset;
@@ -304,11 +301,19 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         return null;
     }
 
-
     public void deleteDecodedMsg(String msgId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        if(db.delete(DecodedEntry.TABLE_NAME, DecodedEntry.COLUMN_MSG_ID + " = ?", new String[] {msgId}) != 0){
+        if (db.delete(DecodedEntry.TABLE_NAME, DecodedEntry.COLUMN_MSG_ID + " = ?", new String[]{msgId}) != 0) {
             Log.e("Deleted:::", "SUCCESS");
         }
+    }
+    public void deleteAlias(String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(KeyPairEntry.TABLE_NAME, KeyPairEntry.COLUMN_NAME + " = ?", new String[] { name });
+    }
+
+    public void deleteContact(String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(ContactKeysEntry.TABLE_NAME, ContactKeysEntry.COLUMN_CONTACT_NAME + " = ?", new String[] { name });
     }
 }
