@@ -30,26 +30,22 @@ import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.io.File;
-import java.security.Key;
-import java.security.KeyPair;
 
+import ca.projecthermes.projecthermes.Ethereum.Ethereum;
 import ca.projecthermes.projecthermes.data.HermesDbContract;
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.data.MsgAdapter;
 import ca.projecthermes.projecthermes.services.WiFiPeerDiscoverService;
-import ca.projecthermes.projecthermes.util.Encryption;
 
 
 public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAdapterOnClickHandler {
@@ -61,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
     private DrawerLayout mDrawerLayout;
     public HermesDbHelper hermesDbHelper;
     private NavigationView navigationView;
+    private Ethereum eth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -161,6 +158,8 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                     }
                 }
         );
+
+        eth = Ethereum.getInstance(this);
     }
 
     @Override
