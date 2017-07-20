@@ -1,9 +1,13 @@
 package ca.projecthermes.projecthermes;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
@@ -28,6 +32,8 @@ import java.security.KeyPair;
 
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.util.Encryption;
+import pl.droidsonroids.gif.GifDrawable;
+import pl.droidsonroids.gif.GifImageView;
 
 public class SendMessageActivity extends AppCompatActivity {
 
@@ -37,7 +43,7 @@ public class SendMessageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_message);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -62,7 +68,22 @@ public class SendMessageActivity extends AppCompatActivity {
                 byte[] decodedRecipient = Base64.decode(recipient, Base64.DEFAULT);
 
                 hermesDbHelper.storeNewEncryptedMessage(msg.getText().toString(), decodedRecipient);
-                onBackPressed();
+
+                @SuppressLint("InflateParams") View alert = getLayoutInflater().inflate(R.layout.sent_message_confimation, null);
+
+
+                new AlertDialog.Builder(SendMessageActivity.this).setView(alert)
+                        .show();
+
+                Toolbar message_sent_toolbar = (Toolbar) alert.findViewById(R.id.message_transmission);
+                message_sent_toolbar.setTitle("Message transmitting...");
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        onBackPressed();
+                    }
+                }, (int)(Math.random()*700)+1800);
             }
         });
 
