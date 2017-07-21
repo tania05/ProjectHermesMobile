@@ -32,8 +32,6 @@ import java.security.KeyPair;
 
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.util.Encryption;
-import pl.droidsonroids.gif.GifDrawable;
-import pl.droidsonroids.gif.GifImageView;
 
 public class SendMessageActivity extends AppCompatActivity {
 
