@@ -7,6 +7,7 @@ import org.ethereum.geth.Account;
 
 import io.ethmobile.ethdroid.EthDroid;
 import io.ethmobile.ethdroid.KeyManager;
+import io.ethmobile.ethdroid.model.Balance;
 
 /**
  * Created by abc on 2017-07-20.
@@ -56,5 +57,9 @@ public class Ethereum {
     public void newMessage(String msgId, int privateNonce, int publicNonce) {}
     public void addHop(String msgId, int publicNonce) {}
     public void receiveMessage(String msgId, int privateNonce) {}
+
+    public Balance getBalance() throws Exception {
+        return eth.getBalance();
+    }
 
 }

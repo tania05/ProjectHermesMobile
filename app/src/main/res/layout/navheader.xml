@@ -15,8 +15,9 @@
   -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/navheader_height"
+    android:layout_height="wrap_content"
     android:layout_marginTop="16dp"
     android:background="@color/primary"
     android:orientation="vertical"
@@ -25,7 +26,15 @@
     <ImageView
         android:id="@+id/nav_profile"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/navheader_height"
         android:background="@color/primary"
         app:srcCompat="@drawable/anonymous" />
+
+    <TextView
+        android:id="@+id/balanceText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="TextView"
+        tools:text="Current balance:" />
 </LinearLayout>
