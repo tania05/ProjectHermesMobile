@@ -2,7 +2,6 @@ package ca.projecthermes.projecthermes.networking.payload;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.UUID;
 
 import static ca.projecthermes.projecthermes.util.Encryption.encryptString;
 
@@ -14,16 +13,16 @@ public class Message implements IPayload {
     public byte[] verifier;
     public byte[] key;
     public byte[] body;
+    public byte[] privateNonce;
+    public byte[] publicNonce;
 
-    public Message(byte[] identifier, byte[] verifier, byte[] key, byte[] body) {
+    public Message(byte[] identifier, byte[] verifier, byte[] key, byte[] body, byte[] publicNonce, byte[] privateNonce) {
         this.identifier = identifier;
         this.verifier = verifier;
         this.key = key;
         this.body = body;
-    }
-
-    public static byte[] generateIdentifier() {
-        return UUID.randomUUID().toString().getBytes(CHARSET);
+        this.publicNonce = publicNonce;
+        this.privateNonce = privateNonce;
     }
 
     public static byte[] getValidVerifier(byte[] publicKey) {

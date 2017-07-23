@@ -35,6 +35,8 @@ public class TransmissionRequestResponderUnitTests {
                             new byte[] { testIdentifier },
                             new byte[] { 0x00 },
                             new byte[] { 0x00 },
+                            new byte[] { 0x01, 0x02, 0x03 },
+                            new byte[] { 0x01, 0x02, 0x03 },
                             new byte[] { 0x01, 0x02, 0x03 }
                     );
                 }
@@ -211,6 +213,8 @@ public class TransmissionRequestResponderUnitTests {
                             new byte[] { 0 }, // identifier
                             new byte[] { 0 }, // verifier
                             new byte[] { 0 },
+                            new byte[] { 0, 0, 0 }, // body
+                            new byte[] { 0, 0, 0 }, // body
                             new byte[] { 0, 0, 0 } // body
                     );
 
@@ -219,6 +223,8 @@ public class TransmissionRequestResponderUnitTests {
                             new byte[] { 1 },
                             new byte[] { 0 },
                             new byte[] { 0 },
+                            new byte[] { 1, 1, 1 },
+                            new byte[] { 1, 1, 1 },
                             new byte[] { 1, 1, 1 }
                     );
                 } else {
@@ -283,6 +289,8 @@ public class TransmissionRequestResponderUnitTests {
                 new byte[] { 0x01 },
                 new byte[] { 0x00 },
                 new byte[] { 0x00 },
+                new byte[] { 0x00, 0x01, 0x02, 0x03 },
+                new byte[] { 0x00, 0x01, 0x02, 0x03 },
                 new byte[] { 0x00, 0x01, 0x02, 0x03 }
         );
 

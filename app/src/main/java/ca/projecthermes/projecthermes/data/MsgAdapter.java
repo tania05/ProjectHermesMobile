@@ -3,9 +3,7 @@ package ca.projecthermes.projecthermes.data;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,13 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.Arrays;
-
-import ca.projecthermes.projecthermes.MainActivity;
 import ca.projecthermes.projecthermes.MessageDetail;
 import ca.projecthermes.projecthermes.R;
-import ca.projecthermes.projecthermes.networking.payload.Message;
-import ca.projecthermes.projecthermes.util.Encryption;
 
 /**
  * Created by abc on 2017-07-12.
@@ -92,7 +85,7 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.MsgAdapterViewHo
     @Override
     public int getItemCount() {
         if (null == mCursor) return 0;
-        Log.d(TAG, "getItemCount: " + mCursor.getCount());
+        Log.v(TAG, "getItemCount: " + mCursor.getCount());
         return mCursor.getCount();
     }
 

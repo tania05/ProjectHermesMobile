@@ -6,9 +6,9 @@ import android.util.Log;
 import org.ethereum.geth.Account;
 import org.ethereum.geth.BigInt;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 
+import ca.projecthermes.projecthermes.util.Encryption;
 import io.ethmobile.ethdroid.EthDroid;
 import io.ethmobile.ethdroid.KeyManager;
 import io.ethmobile.ethdroid.model.Balance;
@@ -61,77 +61,72 @@ public class Ethereum {
         return instance;
     }
 
-    public void newMessage(String msgId, int privateNonce, int publicNonce) {
+    public void newMessage(byte[] msgId, byte[] publicNonce, byte[] privateNonce) {
         try {
+            byte[] hashedPublicNonce = Encryption.hashNonceWithMsgId(msgId, publicNonce);
+            byte[] hashedPrivateNonce = Encryption.hashNonceWithMsgId(msgId, privateNonce);
+
             String encodedData = "0x324120650000000000000000000000000000000000000000000000000000000000000060"
-                    + String.format("%-64x", publicNonce).replace(' ', '0')
-                    + String.format("%-64x", privateNonce).replace(' ', '0')
-                    + String.format("%64x", 32).replace(' ', '0')
-                    + String.format("%32x", new BigInteger(1, msgId.replaceAll("-", "").getBytes("US-ASCII")));
-            callContractFunction(encodedData);
+                    + String.format("%64x", new BigInteger(1, hashedPublicNonce))
+                    + String.format("%64x", new BigInteger(1, hashedPrivateNonce))
+                    + String.format("%064x", 32)
+                    + String.format("%32x", new BigInteger(1, msgId));
+            callContractFunction(encodedData, msgCost);
 
-            Log.e(TAG, "MSG UUID: " + msgId);
-            Log.e(TAG, "privateNonce : " + privateNonce);
-            Log.e(TAG, "publicNonce: " + publicNonce);
+            Log.e(TAG, "MSG UUID: " + msgId.length);
+            Log.e(TAG, "privateNonce : " + privateNonce.length);
+            Log.e(TAG, "publicNonce: " + publicNonce.length);
 
-            Log.e(TAG, "Encoded data: " + encodedData);
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "new Message failed");
         }
     }
-    public void addHop(String msgId, int publicNonce) {
+    public void addHop(byte[] msgId, byte[] publicNonce) {
         try {
-            String publicNonceStr = publicNonce + "";
-
             String encodedData = "0x79a90dfd0000000000000000000000000000000000000000000000000000000000000040"
                                 + "0000000000000000000000000000000000000000000000000000000000000080"
-                                + String.format("%64x", 32).replace(' ', '0')
-                                + String.format("%32x", new BigInteger(1, msgId.replaceAll("-", "").getBytes("US-ASCII")))
-                                + String.format("%64x", publicNonceStr.length()).replace(' ', '0')
-                                + String.format("%32x", new BigInteger(1, publicNonceStr.getBytes("US-ASCII")));
+                                + String.format("%064x", 32)
+                                + String.format("%32x", new BigInteger(1, msgId))
+                                + String.format("%064x", 32)
+                                + String.format("%32x", new BigInteger(1, publicNonce));
 
-            callContractFunction(encodedData);
-
-        } catch (UnsupportedEncodingException e) {
+            callContractFunction(encodedData, 0);
+        } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "addHop failed");
         }
 
 
     }
-    public void receiveMessage(String msgId, int privateNonce) {
-
+    public void receiveMessage(byte[] msgId, byte[] privateNonce) {
         try {
-            String privateNonceStr = privateNonce + "";
-
             String encodedData = "0x96e03dd30000000000000000000000000000000000000000000000000000000000000040"
                     + "0000000000000000000000000000000000000000000000000000000000000080"
-                    + String.format("%64x", 32).replace(' ', '0')
-                    + String.format("%32x", new BigInteger(1, msgId.replaceAll("-", "").getBytes("US-ASCII")))
-                    + String.format("%64x", privateNonceStr.length()).replace(' ', '0')
-                    + String.format("%32x", new BigInteger(1, privateNonceStr.getBytes("US-ASCII")));
+                    + String.format("%064x", 32)
+                    + String.format("%32x", new BigInteger(1, msgId))
+                    + String.format("%064x", 32)
+                    + String.format("%32x", new BigInteger(1, privateNonce));
 
-            callContractFunction(encodedData);
+            callContractFunction(encodedData, 0);
 
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            Log.e(TAG, "receiveMessage failed");
         }
     }
 
 
-    private void callContractFunction(String encodedData) {
-        try {
+    private void callContractFunction(String encodedData, long value) throws Exception {
+            Log.e(TAG, "Encoded data: " + encodedData);
+
             keyManager.unlockAccount(account, "password"); //TODO: ask user for password
             eth.newTransaction()
                     .to(SmartContractAddress)
                     .gasAmount(gasAmount)
-                    .value(msgCost)
+                    .value(value)
                     .data(encodedData)
                     .send();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public Balance getBalance() throws Exception {

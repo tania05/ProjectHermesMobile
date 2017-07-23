@@ -10,6 +10,8 @@ public class HermesDbContract {
         public static final String COLUMN_MSG_BODY = "body";
         public static final String COLUMN_MSG_KEY = "key";
         public static final String COLUMN_MSG_VERIFIER = "verifier";
+        public static final String COLUMN_MSG_PRIVATE_NONCE = "privateNonce";
+        public static final String COLUMN_MSG_PUBLIC_NONCE = "publicNonce";
     }
 
     public static final class DecodedEntry implements BaseColumns {

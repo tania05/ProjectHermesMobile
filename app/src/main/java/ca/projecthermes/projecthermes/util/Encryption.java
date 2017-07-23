@@ -14,15 +14,16 @@ import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.util.PrivateKeyFactory;
 import org.spongycastle.crypto.util.PublicKeyFactory;
 
+import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.UUID;
 
 import javax.crypto.KeyGenerator;
-
-import ca.projecthermes.projecthermes.data.HermesDbHelper;
 
 
 public class Encryption {
@@ -129,4 +130,25 @@ public class Encryption {
 
         return null;
     }
+
+    public static byte[] getBytesFromUUID(UUID uuid) {
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+
+        return bb.array();
+    }
+
+    public static byte[] hashNonceWithMsgId(byte[] messageIdBytes, byte[] nonceBytes) throws NoSuchAlgorithmException {
+        byte[] messageIdWithNonceBytes = new byte[32];
+        System.arraycopy(messageIdBytes, 0, messageIdWithNonceBytes, 0, 16);
+        System.arraycopy(nonceBytes, 0, messageIdWithNonceBytes, 16, 16);
+
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(messageIdWithNonceBytes);
+        byte[] hashedMessageIdWithNonce = md.digest();
+
+        return hashedMessageIdWithNonce;
+    }
+
 }

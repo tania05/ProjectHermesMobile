@@ -13,11 +13,13 @@ import java.nio.charset.Charset;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.UUID;
 
-import ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry;
-import ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry;
+import ca.projecthermes.projecthermes.Ethereum.Ethereum;
 import ca.projecthermes.projecthermes.data.HermesDbContract.ContactKeysEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.DecodedEntry;
+import ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry;
+import ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry;
 import ca.projecthermes.projecthermes.networking.payload.Message;
 import ca.projecthermes.projecthermes.util.Encryption;
 import ca.projecthermes.projecthermes.util.Util;
@@ -30,6 +32,8 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry.
 import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.COLUMN_MSG_BODY;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.COLUMN_MSG_ID;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.COLUMN_MSG_KEY;
+import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.COLUMN_MSG_PRIVATE_NONCE;
+import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.COLUMN_MSG_PUBLIC_NONCE;
 import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.COLUMN_MSG_VERIFIER;
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
@@ -56,7 +60,9 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                         COLUMN_MSG_ID     + " TEXT NOT NULL," +
                         COLUMN_MSG_VERIFIER    + " BLOB NOT NULL, " +
                         COLUMN_MSG_KEY    + " BLOB NOT NULL, " +
-                        COLUMN_MSG_BODY   + " BLOB NOT NULL" +
+                        COLUMN_MSG_BODY   + " BLOB NOT NULL, " +
+                        COLUMN_MSG_PUBLIC_NONCE   + " BLOB NOT NULL, " +
+                        COLUMN_MSG_PRIVATE_NONCE  + " BLOB NOT NULL" +
                 ");";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MSG_TABLE);
@@ -102,12 +108,20 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         byte[] encryptedMsg = Encryption.encryptUnderAes(key, msgBytes);//Encryption.encryptString(msgBytes, publicKeyBytes);
         byte[] encryptedKey = Encryption.encryptString(key, publicKeyBytes);
 
-        Message m = new Message(Message.generateIdentifier(),
+        byte[] publicNonce = Encryption.getBytesFromUUID(UUID.randomUUID());
+        byte[] privateNonce = Encryption.getBytesFromUUID(UUID.randomUUID());
+        byte[] encryptedPrivateNonce = Encryption.encryptString(privateNonce, publicKeyBytes);
+
+        byte[] msgId = Encryption.getBytesFromUUID(UUID.randomUUID());
+        Message m = new Message(msgId,
                                 Message.getValidVerifier(publicKeyBytes),
                                 encryptedKey,
-                                encryptedMsg);
+                                encryptedMsg,
+                                publicNonce,
+                                encryptedPrivateNonce);
 
         Log.d("hermes", "Added message with identifier: " + Util.bytesToHex(m.identifier));
+        Ethereum.getInstance(_context).newMessage(msgId, publicNonce, privateNonce);
         storeMessage(m);
     }
 
@@ -123,11 +137,14 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
             values.put(COLUMN_MSG_BODY, m.body);
             values.put(COLUMN_MSG_KEY, m.key);
             values.put(COLUMN_MSG_VERIFIER, m.verifier);
+            values.put(COLUMN_MSG_PUBLIC_NONCE, m.publicNonce);
+            values.put(COLUMN_MSG_PRIVATE_NONCE, m.privateNonce);
 
             long newRowId = db.insert(MessageEntry.TABLE_NAME, null, values);
             Log.d("HermesDbHelper", "Db Row " + newRowId);
 
             onEncryptedStored(m, db);
+            Ethereum.getInstance(_context).addHop(m.identifier, m.publicNonce);
         }
     }
 
@@ -157,8 +174,10 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                     byte[] decryptedAesKey = Encryption.decryptString(m.key, privateKey);
                     byte[] decryptedMessage = Encryption.decryptUnderAes(decryptedAesKey, m.body);
                     String decryptingAlias = cursor.getString(cursor.getColumnIndex(KeyPairEntry.COLUMN_NAME));
+                    byte[] decryptedPrivateNonce = Encryption.decryptString(m.privateNonce, privateKey);
 
                     Log.d("hermesdb", "Successfully decrypted identifier " + new String(m.identifier, CHARSET) + " with alias " + decryptingAlias);
+                    Ethereum.getInstance(_context).receiveMessage(m.identifier, decryptedPrivateNonce);
 
                     storeDecryptedMessage(m.identifier, decryptedMessage, decryptingAlias, db);
                     break;
@@ -208,17 +227,16 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                 new String[] { new String(identifier, CHARSET) }
         );
 
-
-
-
         if (cursor.moveToFirst()) {
             byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(CHARSET);
             byte[] body = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_BODY));
             byte[] key = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_KEY));
             byte[] verifier = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_VERIFIER));
+            byte[] publicNonce = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_PUBLIC_NONCE));
+            byte[] privateNonce = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_PRIVATE_NONCE));
 
             cursor.close();
-            return new Message(msgId, verifier, key, body);
+            return new Message(msgId, verifier, key, body, publicNonce, privateNonce);
         }
 
         cursor.close();
