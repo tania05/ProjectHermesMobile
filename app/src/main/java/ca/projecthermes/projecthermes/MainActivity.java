@@ -34,10 +34,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+
+import org.ethereum.geth.EthereumClient;
 
 import java.io.File;
 
@@ -46,6 +49,7 @@ import ca.projecthermes.projecthermes.data.HermesDbContract;
 import ca.projecthermes.projecthermes.data.HermesDbHelper;
 import ca.projecthermes.projecthermes.data.MsgAdapter;
 import ca.projecthermes.projecthermes.services.WiFiPeerDiscoverService;
+import io.ethmobile.ethdroid.model.Balance;
 
 
 public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAdapterOnClickHandler {
@@ -231,6 +235,14 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         if(preferred_pic != null){
             setProfileImage(preferred_pic);
             Log.e("TEIUREOI", "ERERE");
+        }
+
+        try {
+            Balance balance = eth.getBalance();
+            TextView balanceText = (TextView) navigationView.getHeaderView(0).findViewById(R.id.balanceText);
+            balanceText.setText("Current balance: " + balance.string());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

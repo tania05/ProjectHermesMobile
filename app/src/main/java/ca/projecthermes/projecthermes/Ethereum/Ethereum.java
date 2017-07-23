@@ -11,6 +11,7 @@ import java.math.BigInteger;
 
 import io.ethmobile.ethdroid.EthDroid;
 import io.ethmobile.ethdroid.KeyManager;
+import io.ethmobile.ethdroid.model.Balance;
 
 /**
  * Created by abc on 2017-07-20.
@@ -131,6 +132,10 @@ public class Ethereum {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Balance getBalance() throws Exception {
+        return eth.getBalance();
     }
 
 }

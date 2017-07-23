@@ -33,6 +33,7 @@ import ca.projecthermes.projecthermes.networking.responder.TransmissionRequestRe
 import ca.projecthermes.projecthermes.util.BundleHelper;
 import ca.projecthermes.projecthermes.util.ErrorCodeHelper;
 import ca.projecthermes.projecthermes.util.IObservableListener;
+import ca.projecthermes.projecthermes.util.Null;
 import ca.projecthermes.projecthermes.util.Source;
 import ca.projecthermes.projecthermes.util.TimeManager;
 import ca.projecthermes.projecthermes.util.Util;
@@ -158,7 +159,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                             });
 
                             //blocks
-                            onSocketConnectRunnable(socket[0], false).run();
+                            onSocketConnectRunnable(socket[0], false, device).run();
                         } catch (InvokerFailException e) {
                             _logger.e("Failed to open client socket 30 times, aborting.");
                             device.disconnect();
@@ -172,7 +173,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    private Runnable onSocketConnectRunnable(final Socket socket, final boolean isServer) {
+    private Runnable onSocketConnectRunnable(final Socket socket, final boolean isServer, final INetworkDevice device) {
         return new Runnable() {
             @Override
             public void run() {
@@ -183,6 +184,20 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                         responders = createServerRunnables(packetManager);
                     } else {
                         responders = createClientRunnables(packetManager);
+                        packetManager.getDisconnectObservable().subscribe(new IObservableListener<Null>() {
+                            @Override
+                            public void update(Null arg) {
+                                //Disconnect from WifiP2P
+                                if (device != null) {
+                                    device.disconnect();
+                                }
+                            }
+
+                            @Override
+                            public void error(Exception e) {
+
+                            }
+                        });
                     }
                     for (Runnable responder : responders) {
                         new Thread(responder).start();
@@ -204,7 +219,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             _logger.d("Waiting for connection...");
             final Socket socket = serverSocket.accept();
             _logger.d("Connected to new client");
-            new Thread(onSocketConnectRunnable(socket, true)).start();
+            new Thread(onSocketConnectRunnable(socket, true, null)).start();
         }
     }
 
