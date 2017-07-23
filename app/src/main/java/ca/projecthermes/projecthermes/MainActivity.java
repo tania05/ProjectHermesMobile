@@ -138,8 +138,6 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
                             case R.id.inbox:
                                 mDrawerLayout.closeDrawers();
                                 return true;
-                            case R.id.outbox:
-                                return true;
                             case R.id.scan_qr:
                                 QRCodeEncoder.scanQRCode(MainActivity.this);
                                 return true;

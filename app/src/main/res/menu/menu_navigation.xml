@@ -6,37 +6,35 @@
             android:id="@+id/inbox"
             android:title="Inbox"
             android:contentDescription="inbox"
-            />
-        <item
-            android:tint="@color/button_grey"
-            android:id="@+id/outbox"
-            android:title="Outbox"
-            android:contentDescription="outbox"
-            />
-        <item
-            android:tint="@color/button_grey"
-            android:id="@+id/settings"
-            android:title="Settings"
-            android:contentDescription="settings"
+            android:icon="@drawable/ic_email_black_24dp"
             />
         <item
             android:tint="@color/button_grey"
             android:id="@+id/scan_qr"
             android:title="Scan QR code"
             android:contentDescription="scan_qr_code"
+            android:icon="@drawable/ic_camera_black_24dp"
             />
         <item
             android:tint="@color/button_grey"
             android:id="@+id/contacts"
             android:title="Contacts"
             android:contentDescription="contacts"
+            android:icon="@drawable/ic_person_add_black_24dp"
             />
-
         <item
             android:tint="@color/button_grey"
             android:id="@+id/aliases"
             android:title="Aliases"
             android:contentDescription="aliases"
+            android:icon="@drawable/ic_vpn_key_black_24dp"
+            />
+        <item
+            android:tint="@color/button_grey"
+            android:id="@+id/settings"
+            android:title="Settings"
+            android:contentDescription="settings"
+            android:icon="@drawable/ic_settings_black_24dp"
             />
     </group>
 </menu>
