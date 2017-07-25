@@ -38,7 +38,7 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 12;
     public static final Charset CHARSET = Charset.forName("UTF-16");
 
     public static final String MESSAGE_ADDED_ACTION = "ca.projecthermes.projecthermes.broadcast.MESSAGE_ADDED";
@@ -221,8 +221,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         SQLiteDatabase db = this.getReadableDatabase();
 
         String hexEncoding = Util.bytesToHex(identifier);
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MSG_ID + "," + COLUMN_MSG_BODY + "," +
-                COLUMN_MSG_VERIFIER + "," + COLUMN_MSG_KEY + " FROM " + MessageEntry.TABLE_NAME + " WHERE " +
+        Cursor cursor = db.rawQuery("SELECT * FROM " + MessageEntry.TABLE_NAME + " WHERE " +
                 COLUMN_MSG_ID + " = ?",
                 new String[] { new String(identifier, CHARSET) }
         );
