@@ -122,7 +122,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                                 encryptedPrivateNonce);
 
         Ethereum.getInstance(_context).newMessage(msgId, publicNonce, privateNonce);
-        Log.e("FFFF", "generated new id: " + Ethereum.hexToString(msgId));
+        Log.e("FFFF", "generated new id: " + Util.bytesToHex(msgId));
         storeMessage(m);
     }
 
@@ -133,9 +133,9 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
             Log.w("HermesDbHelper", "Already have this message stored, skipping.");
             // TODO probably a race condition here.
         } else {
-            Log.e("FFFF", Ethereum.hexToString(m.identifier));
+            Log.e("FFFF", Util.bytesToHex(m.identifier));
             ContentValues values = new ContentValues();
-            values.put(COLUMN_MSG_ID, Ethereum.hexToString(m.identifier));
+            values.put(COLUMN_MSG_ID, Util.bytesToHex(m.identifier));
             values.put(COLUMN_MSG_BODY, m.body);
             values.put(COLUMN_MSG_KEY, m.key);
             values.put(COLUMN_MSG_VERIFIER, m.verifier);
@@ -178,7 +178,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                     String decryptingAlias = cursor.getString(cursor.getColumnIndex(KeyPairEntry.COLUMN_NAME));
                     byte[] decryptedPrivateNonce = Encryption.decryptString(m.privateNonce, privateKey);
 
-                    Log.d("hermesdb", "Successfully decrypted identifier " + Ethereum.hexToString(m.identifier) + " with alias " + decryptingAlias);
+                    Log.d("hermesdb", "Successfully decrypted identifier " + Util.bytesToHex(m.identifier) + " with alias " + decryptingAlias);
                     Ethereum.getInstance(_context).receiveMessage(m.identifier, decryptedPrivateNonce);
 
                     storeDecryptedMessage(m.identifier, decryptedMessage, decryptingAlias, db);
@@ -191,7 +191,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private void storeDecryptedMessage(byte[] identifier, byte[] decryptedMessage, String name, SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put(DecodedEntry.COLUMN_DECODING_ALIAS, name);
-        values.put(DecodedEntry.COLUMN_MSG_ID, Ethereum.hexToString(identifier));
+        values.put(DecodedEntry.COLUMN_MSG_ID, Util.bytesToHex(identifier));
         values.put(DecodedEntry.COLUMN_MSG_BODY, decryptedMessage);
         long newRowId = db.insert(DecodedEntry.TABLE_NAME, null, values);
         Log.e("hermesdb", "Stored decrypted message row " + newRowId);
@@ -225,7 +225,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         String hexEncoding = Util.bytesToHex(identifier);
         Cursor cursor = db.rawQuery("SELECT * FROM " + MessageEntry.TABLE_NAME + " WHERE " +
                 COLUMN_MSG_ID + " = ?",
-                new String[] { Ethereum.hexToString(identifier) }
+                new String[] { Util.bytesToHex(identifier) }
         );
 
         if (cursor.moveToFirst()) {

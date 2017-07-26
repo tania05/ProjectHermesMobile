@@ -129,7 +129,7 @@ public class TransmissionRequestResponder implements Runnable {
 
     private void onMessageReceived(Message message) {
         _logger.d("Received message: " + message);
-        Log.e("FFFF", "Received message: " + Ethereum.hexToString(message.identifier));
+        Log.e("FFFF", "Received message: " + Util.bytesToHex(message.identifier));
         _messageStore.storeMessage(message);
     }
 }
