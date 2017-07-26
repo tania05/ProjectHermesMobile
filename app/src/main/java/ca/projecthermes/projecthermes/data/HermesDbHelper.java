@@ -1,5 +1,7 @@
 package ca.projecthermes.projecthermes.data;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +9,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import java.nio.charset.Charset;
@@ -16,6 +20,8 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import ca.projecthermes.projecthermes.Ethereum.Ethereum;
+import ca.projecthermes.projecthermes.MainActivity;
+import ca.projecthermes.projecthermes.R;
 import ca.projecthermes.projecthermes.data.HermesDbContract.ContactKeysEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.DecodedEntry;
 import ca.projecthermes.projecthermes.data.HermesDbContract.KeyPairEntry;
@@ -38,7 +44,7 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 14;
+    private static final int DATABASE_VERSION = 15;
     public static final Charset CHARSET = Charset.forName("UTF-16");
     public static final Charset ID_CHARSET = Charset.forName("US-ASCII");
 
@@ -182,6 +188,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                     Ethereum.getInstance(_context).receiveMessage(m.identifier, decryptedPrivateNonce);
 
                     storeDecryptedMessage(m.identifier, decryptedMessage, decryptingAlias, db);
+
                     break;
                 }
             } while (cursor.moveToNext());
@@ -195,6 +202,25 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         values.put(DecodedEntry.COLUMN_MSG_BODY, decryptedMessage);
         long newRowId = db.insert(DecodedEntry.TABLE_NAME, null, values);
         Log.e("hermesdb", "Stored decrypted message row " + newRowId);
+
+        String displayedMsg = new String(decryptedMessage, HermesDbHelper.CHARSET);
+        displayedMsg = displayedMsg.replaceAll("\\n", " ");
+        //show a notification
+        Intent launchIntent = new Intent(_context, MainActivity.class);
+
+        TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(_context);
+        taskStackBuilder.addParentStack(MainActivity.class);
+        taskStackBuilder.addNextIntent(launchIntent);
+        PendingIntent pendingIntent = taskStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(_context)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle("Decrypted message on alias " + name)
+                    .setContentText(displayedMsg)
+                    .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager = (NotificationManager) _context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(0, builder.build());
     }
 
 
