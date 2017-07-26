@@ -133,9 +133,9 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
             Log.w("HermesDbHelper", "Already have this message stored, skipping.");
             // TODO probably a race condition here.
         } else {
-            Log.e("FFFF", new String(m.identifier, ID_CHARSET));
+            Log.e("FFFF", Ethereum.hexToString(m.identifier));
             ContentValues values = new ContentValues();
-            values.put(COLUMN_MSG_ID, new String(m.identifier, ID_CHARSET));
+            values.put(COLUMN_MSG_ID, Ethereum.hexToString(m.identifier));
             values.put(COLUMN_MSG_BODY, m.body);
             values.put(COLUMN_MSG_KEY, m.key);
             values.put(COLUMN_MSG_VERIFIER, m.verifier);
@@ -191,7 +191,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private void storeDecryptedMessage(byte[] identifier, byte[] decryptedMessage, String name, SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put(DecodedEntry.COLUMN_DECODING_ALIAS, name);
-        values.put(DecodedEntry.COLUMN_MSG_ID, new String(identifier, ID_CHARSET));
+        values.put(DecodedEntry.COLUMN_MSG_ID, Ethereum.hexToString(identifier));
         values.put(DecodedEntry.COLUMN_MSG_BODY, decryptedMessage);
         long newRowId = db.insert(DecodedEntry.TABLE_NAME, null, values);
         Log.e("hermesdb", "Stored decrypted message row " + newRowId);
@@ -209,7 +209,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         cursor.moveToFirst();
 
         while(cursor.moveToNext()) {
-            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(ID_CHARSET);
+            byte[] msgId = Ethereum.hexStringToByteArray(cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)));
             msgIdList.add(msgId);
         }
         cursor.close();
@@ -229,7 +229,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         );
 
         if (cursor.moveToFirst()) {
-            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(ID_CHARSET);
+            byte[] msgId = Ethereum.hexStringToByteArray(cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)));
             byte[] body = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_BODY));
             byte[] key = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_KEY));
             byte[] verifier = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_VERIFIER));
