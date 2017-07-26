@@ -1,10 +1,13 @@
 package ca.projecthermes.projecthermes.networking.responder;
 
+import android.util.Log;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import ca.projecthermes.projecthermes.Ethereum.Ethereum;
 import ca.projecthermes.projecthermes.IHermesLogger;
 import ca.projecthermes.projecthermes.networking.packet.IPacketManager;
 import ca.projecthermes.projecthermes.networking.payload.IPayload;
@@ -126,6 +129,7 @@ public class TransmissionRequestResponder implements Runnable {
 
     private void onMessageReceived(Message message) {
         _logger.d("Received message: " + message);
+        Log.e("FFFF", "Received message: " + Ethereum.hexToString(message.identifier));
         _messageStore.storeMessage(message);
     }
 }

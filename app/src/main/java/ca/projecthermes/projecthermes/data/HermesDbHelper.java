@@ -38,7 +38,7 @@ import static ca.projecthermes.projecthermes.data.HermesDbContract.MessageEntry.
 
 public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
-    private static final int DATABASE_VERSION = 12;
+    private static final int DATABASE_VERSION = 14;
     public static final Charset CHARSET = Charset.forName("UTF-16");
     public static final Charset ID_CHARSET = Charset.forName("US-ASCII");
 
@@ -121,8 +121,8 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                                 publicNonce,
                                 encryptedPrivateNonce);
 
-        Log.d("hermes", "Added message with identifier: " + Util.bytesToHex(m.identifier));
         Ethereum.getInstance(_context).newMessage(msgId, publicNonce, privateNonce);
+        Log.e("FFFF", "generated new id: " + Ethereum.hexToString(msgId));
         storeMessage(m);
     }
 

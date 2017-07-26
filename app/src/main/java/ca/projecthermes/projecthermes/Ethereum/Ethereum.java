@@ -92,14 +92,22 @@ public class Ethereum {
         }
     }
 
-    public static String hexToString(byte[] text) {
-        String textStr = String.format("%32x", new BigInteger(1, text));
-
-        StringBuilder textSb = new StringBuilder();
-        for (int i=0; i<textStr.length(); i++) {
-            textSb.append(Integer.toHexString((int) textStr.charAt(i)));
+    public static String hexToString(byte[] bytes) {
+        char[] hexArray = "0123456789abcdef".toCharArray();
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
-       return textSb.toString();
+        return new String(hexChars);
+        //String textStr = String.format("%32x", new BigInteger(1, text));
+
+        //StringBuilder textSb = new StringBuilder();
+        //for (int i=0; i<textStr.length(); i++) {
+        //    textSb.append(Integer.toHexString((int) textStr.charAt(i)));
+        //}
+        //return textSb.toString();
     }
 
     public static byte[] hexStringToByteArray(String s) {

@@ -240,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements MsgAdapter.MsgAda
         try {
             Balance balance = eth.getBalance();
             TextView balanceText = (TextView) navigationView.getHeaderView(0).findViewById(R.id.balanceText);
-            balanceText.setText("Current balance: " + balance.string());
+            balanceText.setText("Current balance: " + balance.inEther() + "eth");
         } catch (Exception e) {
             e.printStackTrace();
         }
