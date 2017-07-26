@@ -7,6 +7,8 @@ import org.ethereum.geth.Account;
 import org.ethereum.geth.BigInt;
 
 import java.math.BigInteger;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import ca.projecthermes.projecthermes.util.Encryption;
 import io.ethmobile.ethdroid.EthDroid;
@@ -100,22 +102,27 @@ public class Ethereum {
        return textSb.toString();
     }
 
-    public void addHop(byte[] msgId, byte[] publicNonce) {
-        try {
+    public void addHop(final byte[] msgId, final byte[] publicNonce) {
 
-            String encodedData = "0x79a90dfd0000000000000000000000000000000000000000000000000000000000000040"
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        String encodedData = "0x79a90dfd0000000000000000000000000000000000000000000000000000000000000040"
                                 + "0000000000000000000000000000000000000000000000000000000000000080"
                                 + String.format("%064x", 32)
                                 + hexToString(msgId)
                                 + String.format("%064x", 32)
                                 + hexToString(publicNonce);
-            Log.e(TAG, "Encoded data: " + encodedData);
+                        Log.e(TAG, "Encoded data: " + encodedData);
 
-            callContractFunction(encodedData, 0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG, "addHop failed");
-        }
+                        callContractFunction(encodedData, 0);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "addHop failed");
+                    }
+                }
+            }, 200000);
 
 
     }

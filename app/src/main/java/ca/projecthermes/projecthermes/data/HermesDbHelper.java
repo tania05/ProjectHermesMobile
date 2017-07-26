@@ -40,6 +40,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private static final String DATABASE_NAME = "hermes.db";
     private static final int DATABASE_VERSION = 12;
     public static final Charset CHARSET = Charset.forName("UTF-16");
+    public static final Charset ID_CHARSET = Charset.forName("US-ASCII");
 
     public static final String MESSAGE_ADDED_ACTION = "ca.projecthermes.projecthermes.broadcast.MESSAGE_ADDED";
     public static final String EXTRA_MESSAGE_IDENTIFIER = "identifier";
@@ -132,8 +133,9 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
             Log.w("HermesDbHelper", "Already have this message stored, skipping.");
             // TODO probably a race condition here.
         } else {
+            Log.e("FFFF", new String(m.identifier, ID_CHARSET));
             ContentValues values = new ContentValues();
-            values.put(COLUMN_MSG_ID, new String(m.identifier, CHARSET));
+            values.put(COLUMN_MSG_ID, new String(m.identifier, ID_CHARSET));
             values.put(COLUMN_MSG_BODY, m.body);
             values.put(COLUMN_MSG_KEY, m.key);
             values.put(COLUMN_MSG_VERIFIER, m.verifier);
@@ -176,7 +178,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
                     String decryptingAlias = cursor.getString(cursor.getColumnIndex(KeyPairEntry.COLUMN_NAME));
                     byte[] decryptedPrivateNonce = Encryption.decryptString(m.privateNonce, privateKey);
 
-                    Log.d("hermesdb", "Successfully decrypted identifier " + new String(m.identifier, CHARSET) + " with alias " + decryptingAlias);
+                    Log.d("hermesdb", "Successfully decrypted identifier " + new String(m.identifier, ID_CHARSET) + " with alias " + decryptingAlias);
                     Ethereum.getInstance(_context).receiveMessage(m.identifier, decryptedPrivateNonce);
 
                     storeDecryptedMessage(m.identifier, decryptedMessage, decryptingAlias, db);
@@ -189,7 +191,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
     private void storeDecryptedMessage(byte[] identifier, byte[] decryptedMessage, String name, SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put(DecodedEntry.COLUMN_DECODING_ALIAS, name);
-        values.put(DecodedEntry.COLUMN_MSG_ID, new String(identifier, CHARSET));
+        values.put(DecodedEntry.COLUMN_MSG_ID, new String(identifier, ID_CHARSET));
         values.put(DecodedEntry.COLUMN_MSG_BODY, decryptedMessage);
         long newRowId = db.insert(DecodedEntry.TABLE_NAME, null, values);
         Log.e("hermesdb", "Stored decrypted message row " + newRowId);
@@ -207,7 +209,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         cursor.moveToFirst();
 
         while(cursor.moveToNext()) {
-            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(CHARSET);
+            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(ID_CHARSET);
             msgIdList.add(msgId);
         }
         cursor.close();
@@ -223,11 +225,11 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         String hexEncoding = Util.bytesToHex(identifier);
         Cursor cursor = db.rawQuery("SELECT * FROM " + MessageEntry.TABLE_NAME + " WHERE " +
                 COLUMN_MSG_ID + " = ?",
-                new String[] { new String(identifier, CHARSET) }
+                new String[] { new String(identifier, ID_CHARSET) }
         );
 
         if (cursor.moveToFirst()) {
-            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(CHARSET);
+            byte[] msgId = cursor.getString(cursor.getColumnIndex(COLUMN_MSG_ID)).getBytes(ID_CHARSET);
             byte[] body = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_BODY));
             byte[] key = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_KEY));
             byte[] verifier = cursor.getBlob(cursor.getColumnIndex(COLUMN_MSG_VERIFIER));
