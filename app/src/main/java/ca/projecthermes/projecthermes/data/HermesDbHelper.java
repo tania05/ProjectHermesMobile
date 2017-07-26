@@ -215,7 +215,7 @@ public class HermesDbHelper extends SQLiteOpenHelper implements IMessageStore {
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(_context)
                     .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle("Decrypted message on alias " + name)
+                    .setContentTitle("Decrypted message on identity " + name)
                     .setContentText(displayedMsg)
                     .setContentIntent(pendingIntent);
 
